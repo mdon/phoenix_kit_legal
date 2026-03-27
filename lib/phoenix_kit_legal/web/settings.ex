@@ -70,6 +70,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
       |> assign(:unpublished_pages, Legal.get_unpublished_required_pages())
       |> assign(:enabled_languages, publishing_module_languages())
       |> assign(:selected_generation_language, default_language())
+      |> assign(:legal_diagnosis, Legal.diagnose_legal_pages())
 
     {:ok, socket}
   end
@@ -223,6 +224,27 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
   @impl true
   def handle_event("select_generation_language", %{"language" => language}, socket) do
     {:noreply, assign(socket, :selected_generation_language, language)}
+  end
+
+  @impl true
+  def handle_event("reset_legal_pages", _params, socket) do
+    case Legal.reset_legal_pages() do
+      {:ok, :reset_complete} ->
+        Legal.ensure_legal_blog()
+
+        {:noreply,
+         socket
+         |> assign(:generated_pages, [])
+         |> assign(:legal_diagnosis, Legal.diagnose_legal_pages())
+         |> put_flash(:info, gettext("Legal pages reset successfully. You can now regenerate them."))}
+
+      {:error, :no_issues_detected} ->
+        {:noreply, put_flash(socket, :warning, gettext("No issues detected — reset not needed"))}
+
+      {:error, reason} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Reset failed: %{reason}", reason: inspect(reason)))}
+    end
   end
 
   # ===================================

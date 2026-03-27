@@ -298,6 +298,28 @@
           </div>
         </div>
 
+        <%!-- Legal Pages Diagnosis Warning --%>
+        <%= if @legal_diagnosis.status == :needs_reset do %>
+          <div class="alert alert-warning mb-4">
+            <span class="hero-exclamation-triangle h-5 w-5 shrink-0"></span>
+            <div>
+              <h3 class="font-bold">{gettext("Issues detected with legal pages")}</h3>
+              <ul class="list-disc list-inside mt-1">
+                <%= for issue <- @legal_diagnosis.issues do %>
+                  <li>{issue}</li>
+                <% end %>
+              </ul>
+            </div>
+            <button
+              phx-click="reset_legal_pages"
+              data-confirm={gettext("This will delete all legal pages and their group. You will need to regenerate them. Continue?")}
+              class="btn btn-warning btn-sm"
+            >
+              {gettext("Reset Legal Pages")}
+            </button>
+          </div>
+        <% end %>
+
         <%!-- Section 4: Page Generation --%>
         <div class="card bg-base-100 shadow">
           <div class="card-body">

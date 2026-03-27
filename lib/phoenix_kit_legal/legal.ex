@@ -40,11 +40,14 @@ defmodule PhoenixKit.Modules.Legal do
               {PhoenixKit.Modules.Publishing, :get_group, 1},
               {PhoenixKit.Modules.Publishing, :add_group, 2},
               {PhoenixKit.Modules.Publishing, :list_posts, 1},
+              {PhoenixKit.Modules.Publishing, :list_posts_by_status, 2},
               {PhoenixKit.Modules.Publishing, :read_post, 2},
               {PhoenixKit.Modules.Publishing, :read_post, 4},
               {PhoenixKit.Modules.Publishing, :create_post, 2},
               {PhoenixKit.Modules.Publishing, :update_post, 4},
-              {PhoenixKit.Modules.Publishing, :add_language_to_post, 4}
+              {PhoenixKit.Modules.Publishing, :add_language_to_post, 4},
+              {PhoenixKit.Modules.Publishing, :restore_post, 2},
+              {PhoenixKit.Modules.Publishing, :remove_group, 2}
             ]}
 
   alias PhoenixKit.Dashboard.Tab
@@ -848,6 +851,68 @@ defmodule PhoenixKit.Modules.Legal do
   end
 
   @doc """
+  Diagnose problems with legal pages.
+
+  Returns a map with:
+  - :status — :ok | :needs_reset
+  - :issues — list of detected problems
+  - :trashed_count — number of trashed legal posts
+  - :orphaned_slugs — slugs that exist as trashed but conflict with generation
+  """
+  @spec diagnose_legal_pages() :: map()
+  def diagnose_legal_pages do
+    trashed =
+      try do
+        publishing_module().list_posts_by_status(@legal_blog_slug, "trashed")
+      rescue
+        _ -> []
+      end
+
+    _active = list_generated_pages()
+    trashed_slugs = MapSet.new(Enum.map(trashed, & &1[:slug]))
+    orphaned = MapSet.intersection(trashed_slugs, MapSet.new(Map.keys(@page_types)))
+
+    issues = []
+
+    issues =
+      if length(trashed) > 0,
+        do: issues ++ ["#{length(trashed)} trashed legal pages found"],
+        else: issues
+
+    issues =
+      if MapSet.size(orphaned) > 0,
+        do: issues ++ ["Orphaned slugs: #{Enum.join(orphaned, ", ")}"],
+        else: issues
+
+    %{
+      status: if(issues == [], do: :ok, else: :needs_reset),
+      issues: issues,
+      trashed_count: length(trashed),
+      orphaned_slugs: MapSet.to_list(orphaned)
+    }
+  end
+
+  @doc """
+  Reset legal pages by removing the "legal" group and all its posts.
+  Only works when diagnose_legal_pages() returns :needs_reset.
+
+  After reset, call ensure_legal_blog() + generate_all_pages() to recreate.
+  """
+  @spec reset_legal_pages() :: {:ok, :reset_complete} | {:error, term()}
+  def reset_legal_pages do
+    case diagnose_legal_pages() do
+      %{status: :ok} ->
+        {:error, :no_issues_detected}
+
+      %{status: :needs_reset} ->
+        case publishing_module().remove_group(@legal_blog_slug, force: true) do
+          {:ok, _} -> {:ok, :reset_complete}
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
+  @doc """
   Get pages required for given frameworks.
   """
   @spec get_required_pages_for_frameworks(list(String.t())) :: list(String.t())
@@ -891,7 +956,8 @@ defmodule PhoenixKit.Modules.Legal do
     PhoenixKit.Modules.Publishing
   end
 
-  defp ensure_legal_blog do
+  @doc false
+  def ensure_legal_blog do
     # First check if legal blog already exists
     case publishing_module().get_group(@legal_blog_slug) do
       {:ok, _existing_blog} ->
@@ -984,7 +1050,34 @@ defmodule PhoenixKit.Modules.Legal do
         update_existing_legal_post(existing_post, page_config, full_content, language, scope)
 
       {:error, :not_found} ->
-        create_new_legal_post(page_config, full_content, language, scope)
+        trashed = publishing_module().list_posts_by_status(@legal_blog_slug, "trashed")
+        trashed_match = Enum.find(trashed, fn p -> p[:slug] == page_config.slug end)
+
+        case trashed_match do
+          nil ->
+            create_new_legal_post(page_config, full_content, language, scope)
+
+          trashed_post ->
+            case publishing_module().restore_post(@legal_blog_slug, trashed_post[:uuid]) do
+              {:ok, _} ->
+                case publishing_module().read_post(@legal_blog_slug, page_config.slug) do
+                  {:ok, restored_post} ->
+                    update_existing_legal_post(
+                      restored_post,
+                      page_config,
+                      full_content,
+                      language,
+                      scope
+                    )
+
+                  error ->
+                    error
+                end
+
+              {:error, reason} ->
+                {:error, reason}
+            end
+        end
 
       error ->
         error
