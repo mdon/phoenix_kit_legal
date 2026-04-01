@@ -10,6 +10,7 @@ defmodule PhoenixKitLegal.MixProject do
       version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
+      elixirc_options: [ignore_module_conflict: true],
       deps: deps(),
       name: "PhoenixKit Legal",
       source_url: @source_url,
