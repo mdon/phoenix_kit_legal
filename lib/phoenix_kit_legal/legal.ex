@@ -718,10 +718,14 @@ defmodule PhoenixKit.Modules.Legal do
         priority: 929,
         level: :admin,
         parent: :admin_settings,
-        permission: "legal"
+        permission: "legal",
+        live_view: {PhoenixKitWeb.Live.Modules.Legal.Settings, :index}
       )
     ]
   end
+
+  @impl PhoenixKit.Module
+  def css_sources, do: [:phoenix_kit_legal]
 
   # ===================================
   # PAGE GENERATION
