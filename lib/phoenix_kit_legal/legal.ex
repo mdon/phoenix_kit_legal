@@ -698,6 +698,9 @@ defmodule PhoenixKit.Modules.Legal do
   def module_name, do: "Legal"
 
   @impl PhoenixKit.Module
+  def version, do: PhoenixKitLegal.version()
+
+  @impl PhoenixKit.Module
   def permission_metadata do
     %{
       key: "legal",
@@ -718,7 +721,8 @@ defmodule PhoenixKit.Modules.Legal do
         priority: 929,
         level: :admin,
         parent: :admin_settings,
-        permission: "legal"
+        permission: "legal",
+        live_view: {PhoenixKitWeb.Live.Modules.Legal.Settings, :index}
       )
     ]
   end
