@@ -76,7 +76,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     end
   end
 
-  # Insert before the last `plug Plug.Static` in the file.
+  # Insert after the last `plug Plug.Static` block in the file.
   # If no Plug.Static exists, insert before `plug :router` or end of `def endpoint` block.
   defp find_insertion_point(content) do
     # Try to find the last occurrence of `plug Plug.Static`
@@ -98,7 +98,9 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     end
   end
 
-  # Returns the byte position of the last `plug Plug.Static` line start
+  # Returns the byte position AFTER the last `plug Plug.Static` block ends.
+  # Scans forward from the plug line while lines are indented continuation lines
+  # (not starting a new `plug` or `end` keyword).
   defp last_plug_static_position(content) do
     lines = String.split(content, "\n", trim: false)
 
@@ -111,9 +113,38 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
       matches ->
         {_line, last_idx} = List.last(matches)
-        pos = line_start_position(content, last_idx)
+        end_idx = find_block_end(lines, last_idx)
+        # Position after the last line of the block (after its newline)
+        pos = line_start_position(content, end_idx + 1)
         {:ok, pos}
     end
+  end
+
+  # Scans forward from start_idx while lines look like continuation lines
+  # (indented and not starting a new top-level keyword).
+  defp find_block_end(lines, start_idx) do
+    total = length(lines)
+    start_line = Enum.at(lines, start_idx)
+    base_indent = leading_spaces(start_line)
+
+    Enum.reduce_while((start_idx + 1)..(total - 1), start_idx, fn i, last ->
+      line = Enum.at(lines, i)
+      cond do
+        # blank line — block ended
+        String.trim(line) == "" -> {:halt, last}
+        # less or equal indentation — new statement at same/outer level
+        leading_spaces(line) <= base_indent -> {:halt, last}
+        # continuation line
+        true -> {:cont, i}
+      end
+    end)
+  end
+
+  defp leading_spaces(line) do
+    line
+    |> String.graphemes()
+    |> Enum.take_while(&(&1 == " "))
+    |> length()
   end
 
   # Returns byte position of the `plug :router` line

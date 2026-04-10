@@ -40,10 +40,10 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       content = File.read!(path)
       assert String.contains?(content, "phoenix_kit_legal")
 
-      # Our plug must appear BEFORE the existing Plug.Static
+      # Our plug must appear AFTER the existing Plug.Static block
       our_pos = :binary.match(content, "phoenix_kit_legal") |> elem(0)
       existing_pos = :binary.match(content, "at: \"/\",") |> elem(0)
-      assert our_pos < existing_pos
+      assert our_pos > existing_pos
     end
 
     test "idempotent — does not double-insert", %{dir: dir} do
