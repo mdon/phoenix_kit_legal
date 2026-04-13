@@ -21,6 +21,9 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
   @shortdoc "Install PhoenixKitLegal into a Phoenix application"
 
+  @css_source_directive ~s(@source "../../deps/phoenix_kit_legal";)
+  @css_source_pattern ~r/@source\s+["'][^"']*phoenix_kit_legal["']/
+
   @static_plug_snippet """
     plug Plug.Static,
       at: "/phoenix_kit_legal",
@@ -173,7 +176,86 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     Path.wildcard("lib/**/endpoint.ex")
   end
 
-  defp patch_css, do: :ok
-  defp copy_js_to_vendor, do: :ok
+  @doc false
+  def insert_css_source(content) do
+    if String.match?(content, @css_source_pattern) do
+      content
+    else
+      insert_after_last_source(content)
+    end
+  end
+
+  defp insert_after_last_source(content) do
+    lines = String.split(content, "\n")
+
+    last_source =
+      lines
+      |> Enum.with_index()
+      |> Enum.reverse()
+      |> Enum.find(fn {line, _i} -> String.match?(line, ~r/^@source\s+/) end)
+
+    case last_source do
+      {_line, idx} ->
+        {before, rest} = Enum.split(lines, idx + 1)
+        Enum.join(before ++ [@css_source_directive] ++ rest, "\n")
+
+      nil ->
+        last_import =
+          lines
+          |> Enum.with_index()
+          |> Enum.reverse()
+          |> Enum.find(fn {line, _i} -> String.match?(line, ~r/^@import\s+/) end)
+
+        case last_import do
+          {_line, idx} ->
+            {before, rest} = Enum.split(lines, idx + 1)
+            Enum.join(before ++ [@css_source_directive] ++ rest, "\n")
+
+          nil ->
+            @css_source_directive <> "\n" <> content
+        end
+    end
+  end
+
+  defp patch_css do
+    if File.exists?("assets/tailwind.config.js") do
+      Mix.shell().info("  ⚠  Tailwind v3 detected (tailwind.config.js found).")
+      Mix.shell().info("     Add manually to tailwind.config.js content array:")
+      Mix.shell().info(~s(     "../deps/phoenix_kit_legal/**/*.ex"))
+    else
+      css_paths = ["assets/css/app.css", "priv/static/assets/app.css", "assets/app.css"]
+
+      case Enum.find(css_paths, &File.exists?/1) do
+        nil ->
+          Mix.shell().info("  ⚠  Could not find app.css — add @source manually.")
+        path ->
+          content = File.read!(path)
+          updated = insert_css_source(content)
+
+          if updated == content do
+            Mix.shell().info("  ✓ app.css already has @source for phoenix_kit_legal")
+          else
+            File.write!(path, updated)
+            Mix.shell().info("  ✓ Added @source directive to #{path}")
+          end
+      end
+    end
+  end
+
+  @doc false
+  def copy_js_to_vendor do
+    src = Application.app_dir(:phoenix_kit_legal, "priv/static/assets/phoenix_kit_consent.js")
+    dest_dir = "assets/vendor"
+    dest = Path.join(dest_dir, "phoenix_kit_consent.js")
+
+    if File.exists?(dest) do
+      Mix.shell().info("  [skip] #{dest} already exists.")
+    else
+      File.mkdir_p!(dest_dir)
+      File.copy!(src, dest)
+      Mix.shell().info("  [ok]   Copied phoenix_kit_consent.js to #{dest}.")
+    end
+  end
+
   defp print_next_steps, do: :ok
 end
