@@ -262,27 +262,28 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
     ── Next steps ────────────────────────────────────────────────────────────────
 
-    1. Run the migration:
+    1. Copy and run the migration:
 
+         cp deps/phoenix_kit_legal/priv/migrations/add_phoenix_kit_consent_logs.exs \\
+            priv/repo/migrations/$(date +%Y%m%d%H%M%S)_add_phoenix_kit_consent_logs.exs
+         # Edit: rename MyApp.Repo to your repo module name
          mix ecto.migrate
-
-       (or copy priv/migrations/add_phoenix_kit_consent_logs.exs into your
-        app's priv/repo/migrations/ and rename MyApp.Repo accordingly)
 
     2. Add the JS hook in assets/js/app.js:
 
-         import PhoenixKitConsent from "../vendor/phoenix_kit_consent";
+         // Side-effect import (IIFE registers window.PhoenixKitHooks.CookieConsent)
+         import "../vendor/phoenix_kit_consent.js"
+
+         // Add to your LiveSocket hooks:
          let liveSocket = new LiveSocket("/live", Socket, {
-           hooks: { PhoenixKitConsent, ...Hooks }
-         });
+           hooks: { ...Hooks, ...window.PhoenixKitHooks },
+           params: {_csrf_token: csrfToken}
+         })
 
     3. Add the router scope in your router.ex:
 
-         use PhoenixKitLegal.Router
-         # or manually:
-         scope "/legal" do
-           pipe_through :browser
-           live "/consent", PhoenixKitLegal.ConsentLive
+         scope "/admin/settings", PhoenixKitWeb.Live.Modules.Legal do
+           live "/legal", Settings, :index
          end
 
     4. (Optional) Configure in config/config.exs:
@@ -290,6 +291,14 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
          config :phoenix_kit_legal,
            consent_version: "1.0",
            cookie_name: "__consent"
+
+    5. Add the CookieConsent component to your root layout:
+
+         <PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
+           frameworks={["gdpr"]}
+           cookie_policy_url="/legal/cookie-policy"
+           privacy_policy_url="/legal/privacy-policy"
+         />
 
     ──────────────────────────────────────────────────────────────────────────────
     """)

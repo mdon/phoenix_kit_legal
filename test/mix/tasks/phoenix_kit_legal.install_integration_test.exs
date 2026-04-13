@@ -70,8 +70,9 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallIntegrationTest do
       end)
 
     assert output =~ "ecto.migrate"
-    assert output =~ "hooks"
-    assert output =~ "router"
+    assert output =~ "window.PhoenixKitHooks"
+    assert output =~ "PhoenixKitWeb.Live.Modules.Legal"
+    assert output =~ "CookieConsent"
   end
 
   test "run/1 is idempotent — safe to call twice", %{tmp_dir: tmp_dir} do
