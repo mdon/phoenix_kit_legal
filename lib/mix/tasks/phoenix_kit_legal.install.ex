@@ -257,5 +257,41 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     end
   end
 
-  defp print_next_steps, do: :ok
+  defp print_next_steps do
+    Mix.shell().info("""
+
+    ── Next steps ────────────────────────────────────────────────────────────────
+
+    1. Run the migration:
+
+         mix ecto.migrate
+
+       (or copy priv/migrations/add_phoenix_kit_consent_logs.exs into your
+        app's priv/repo/migrations/ and rename MyApp.Repo accordingly)
+
+    2. Add the JS hook in assets/js/app.js:
+
+         import PhoenixKitConsent from "../vendor/phoenix_kit_consent";
+         let liveSocket = new LiveSocket("/live", Socket, {
+           hooks: { PhoenixKitConsent, ...Hooks }
+         });
+
+    3. Add the router scope in your router.ex:
+
+         use PhoenixKitLegal.Router
+         # or manually:
+         scope "/legal" do
+           pipe_through :browser
+           live "/consent", PhoenixKitLegal.ConsentLive
+         end
+
+    4. (Optional) Configure in config/config.exs:
+
+         config :phoenix_kit_legal,
+           consent_version: "1.0",
+           cookie_name: "__consent"
+
+    ──────────────────────────────────────────────────────────────────────────────
+    """)
+  end
 end
