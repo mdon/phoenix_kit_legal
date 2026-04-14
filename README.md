@@ -40,6 +40,65 @@ mix deps.get
 > {:phoenix_kit_legal, github: "BeamLabEU/phoenix_kit_legal"}
 > ```
 
+### Automated setup
+
+Run the install task to patch your app automatically:
+
+```bash
+mix phoenix_kit_legal.install
+```
+
+This task is **idempotent** — safe to run multiple times. It performs three steps:
+
+| Step | What it does |
+|------|--------------|
+| `lib/**/endpoint.ex` | Adds `Plug.Static` at `/phoenix_kit_legal` to serve the consent JS |
+| `assets/css/app.css` | Adds `@source "../../deps/phoenix_kit_legal"` for Tailwind class scanning |
+| `assets/vendor/` | Copies `phoenix_kit_consent.js` so esbuild can import it |
+
+Then it prints the remaining manual steps (migration, JS hook, router scope, component).
+
+#### Manual steps after install
+
+**1. Copy and run the migration:**
+
+```bash
+cp deps/phoenix_kit_legal/priv/migrations/add_phoenix_kit_consent_logs.exs \
+   priv/repo/migrations/$(date +%Y%m%d%H%M%S)_add_phoenix_kit_consent_logs.exs
+# Edit: rename MyApp.Repo to your repo module name
+mix ecto.migrate
+```
+
+**2. Wire up the JS hook in `assets/js/app.js`:**
+
+```js
+// Side-effect import — IIFE registers window.PhoenixKitHooks.CookieConsent
+import "../vendor/phoenix_kit_consent.js"
+
+let liveSocket = new LiveSocket("/live", Socket, {
+  hooks: { ...Hooks, ...window.PhoenixKitHooks },
+  params: {_csrf_token: csrfToken}
+})
+```
+
+**3. Add the router scope in `router.ex`:**
+
+```elixir
+scope "/admin/settings", PhoenixKitWeb.Live.Modules.Legal do
+  live "/legal", Settings, :index
+end
+```
+
+**4. Add the CookieConsent component to your root layout:**
+
+```heex
+<PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
+  frameworks={["gdpr"]}
+  cookie_policy_url="/legal/cookie-policy"
+  privacy_policy_url="/legal/privacy-policy"
+/>
+```
+
 PhoenixKit auto-discovers the module at startup — no additional configuration needed.
 
 ## Quick Start
