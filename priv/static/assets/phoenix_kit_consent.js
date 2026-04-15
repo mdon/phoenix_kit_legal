@@ -793,8 +793,12 @@
     // Check if widget already exists (injected via component)
     var existingRoot = document.getElementById("pk-consent-root");
     if (existingRoot) {
-      // Widget already in DOM, will be initialized by LiveView hook
-      log("Widget already in DOM, waiting for LiveView hook");
+      // Initialize directly from element — the phx-hook may not fire if the element
+      // is outside the LiveView socket boundary (e.g. placed in root.html.heex).
+      // If hook fires later, it will skip because initialized === true.
+      if (!PhoenixKitConsent.initialized) {
+        initFromElement(existingRoot);
+      }
       return;
     }
 
