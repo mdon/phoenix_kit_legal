@@ -455,6 +455,7 @@
   function showBanner() {
     var banner = document.getElementById("pk-consent-banner");
     if (banner) {
+      banner.classList.remove("hidden");
       banner.style.display = "block";
       banner.setAttribute("aria-hidden", "false");
     }
@@ -486,6 +487,7 @@
   function showModal() {
     var modal = document.getElementById("pk-consent-modal");
     if (modal) {
+      modal.classList.remove("hidden");
       modal.style.display = "block";
       hideBanner();
       setTimeout(function() {
