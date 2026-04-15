@@ -2,13 +2,15 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
   @moduledoc """
   Installs PhoenixKitLegal into a Phoenix application.
 
-  Automatically patches three files in the host application:
+  Automatically patches four files in the host application:
 
   1. `lib/**/endpoint.ex` — adds `Plug.Static` to serve consent JS assets
   2. `assets/css/app.css` — adds Tailwind `@source` for legal component classes
-  3. `assets/vendor/` — copies `phoenix_kit_consent.js` for esbuild import
+  3. `assets/js/app.js` — adds consent JS import (side-effect IIFE)
+  4. `assets/vendor/` — copies `phoenix_kit_consent.js` for esbuild
 
-  Then prints next steps for manual wiring (hooks, router, migration).
+  Routes are wired automatically via `phoenix_kit_routes()`.
+  Migrations run via `mix phoenix_kit.update`.
 
   ## Usage
 
@@ -24,6 +26,9 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
   @css_source_directive ~s(@source "../../deps/phoenix_kit_legal";)
   @css_source_pattern ~r/@source\s+["'][^"']*phoenix_kit_legal["']/
 
+  @app_js_import ~s(import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js")
+  @app_js_pattern ~r/phoenix_kit_legal\/priv\/static\/assets\/phoenix_kit_consent/
+
   @static_plug_snippet """
     plug Plug.Static,
       at: "/phoenix_kit_legal",
@@ -37,6 +42,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
     patch_endpoint()
     patch_css()
+    patch_app_js()
     copy_js_to_vendor()
     print_next_steps()
 
@@ -243,6 +249,68 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
   end
 
   @doc false
+  def insert_app_js_import(content) do
+    if String.match?(content, @app_js_pattern) do
+      content
+    else
+      insert_after_phoenix_kit_import(content)
+    end
+  end
+
+  defp insert_after_phoenix_kit_import(content) do
+    lines = String.split(content, "\n")
+
+    pk_import_index =
+      lines
+      |> Enum.with_index()
+      |> Enum.find(fn {line, _i} ->
+        String.contains?(line, "phoenix_kit/priv/static/assets/phoenix_kit.js")
+      end)
+
+    case pk_import_index do
+      {_line, idx} ->
+        {before, rest} = Enum.split(lines, idx + 1)
+        Enum.join(before ++ [@app_js_import] ++ rest, "\n")
+
+      nil ->
+        last_import =
+          lines
+          |> Enum.with_index()
+          |> Enum.reverse()
+          |> Enum.find(fn {line, _i} -> String.match?(line, ~r/^import\s+/) end)
+
+        case last_import do
+          {_line, idx} ->
+            {before, rest} = Enum.split(lines, idx + 1)
+            Enum.join(before ++ [@app_js_import] ++ rest, "\n")
+
+          nil ->
+            content <> "\n" <> @app_js_import
+        end
+    end
+  end
+
+  defp patch_app_js do
+    js_paths = ["assets/js/app.js", "assets/js/app.ts"]
+
+    case Enum.find(js_paths, &File.exists?/1) do
+      nil ->
+        Mix.shell().info("  ⚠  Could not find assets/js/app.js — add import manually.")
+
+      path ->
+        content = File.read!(path)
+        updated = insert_app_js_import(content)
+
+        if updated == content do
+          Mix.shell().info("  ✓ app.js already imports phoenix_kit_consent")
+        else
+          File.write!(path, updated)
+          Mix.shell().info("  ✓ Added phoenix_kit_consent import to #{path}")
+        end
+    end
+  end
+
+  @doc false
   def copy_js_to_vendor do
     src = Application.app_dir(:phoenix_kit_legal, "priv/static/assets/phoenix_kit_consent.js")
     dest_dir = "assets/vendor"
@@ -262,43 +330,20 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
     ── Next steps ────────────────────────────────────────────────────────────────
 
-    1. Copy and run the migration:
+    1. Apply the consent_logs migration:
 
-         cp deps/phoenix_kit_legal/priv/migrations/add_phoenix_kit_consent_logs.exs \\
-            priv/repo/migrations/$(date +%Y%m%d%H%M%S)_add_phoenix_kit_consent_logs.exs
-         # Edit: rename MyApp.Repo to your repo module name
-         mix ecto.migrate
+         mix phoenix_kit.update
 
-    2. Add the JS hook in assets/js/app.js:
-
-         // Side-effect import (IIFE registers window.PhoenixKitHooks.CookieConsent)
-         import "../vendor/phoenix_kit_consent.js"
-
-         // Add to your LiveSocket hooks:
-         let liveSocket = new LiveSocket("/live", Socket, {
-           hooks: { ...Hooks, ...window.PhoenixKitHooks },
-           params: {_csrf_token: csrfToken}
-         })
-
-    3. Add the router scope in your router.ex:
-
-         scope "/admin/settings", PhoenixKitWeb.Live.Modules.Legal do
-           live "/legal", Settings, :index
-         end
-
-    4. (Optional) Configure in config/config.exs:
-
-         config :phoenix_kit_legal,
-           consent_version: "1.0",
-           cookie_name: "__consent"
-
-    5. Add the CookieConsent component to your root layout:
+    2. Add the CookieConsent component to your root layout:
 
          <PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
            frameworks={["gdpr"]}
            cookie_policy_url="/legal/cookie-policy"
            privacy_policy_url="/legal/privacy-policy"
          />
+
+    3. Enable the Legal module in Admin → Modules.
+       Routes and admin settings are wired automatically via phoenix_kit_routes().
 
     ──────────────────────────────────────────────────────────────────────────────
     """)

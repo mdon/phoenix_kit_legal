@@ -190,4 +190,42 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       assert File.dir?("assets/vendor")
     end
   end
+
+  describe "app.js patching" do
+    test "inserts import after phoenix_kit.js line" do
+      js = """
+      import "phoenix_html"
+      import "../../deps/phoenix_kit/priv/static/assets/phoenix_kit.js"
+      import topbar from "../vendor/topbar"
+      """
+
+      result = Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js)
+
+      assert result =~ "phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"
+      lines = String.split(result, "\n")
+      pk_idx = Enum.find_index(lines, &String.contains?(&1, "phoenix_kit.js"))
+      consent_idx = Enum.find_index(lines, &String.contains?(&1, "phoenix_kit_consent.js"))
+      assert consent_idx == pk_idx + 1
+    end
+
+    test "idempotent — does not duplicate if already present" do
+      js = ~s(import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"\n)
+      assert Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js) == js
+    end
+
+    test "falls back to after last import line when no phoenix_kit.js found" do
+      js = """
+      import "phoenix_html"
+      import topbar from "../vendor/topbar"
+      const x = 1
+      """
+
+      result = Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js)
+      assert result =~ "phoenix_kit_consent.js"
+      lines = String.split(result, "\n")
+      topbar_idx = Enum.find_index(lines, &String.contains?(&1, "topbar"))
+      consent_idx = Enum.find_index(lines, &String.contains?(&1, "phoenix_kit_consent.js"))
+      assert consent_idx == topbar_idx + 1
+    end
+  end
 end

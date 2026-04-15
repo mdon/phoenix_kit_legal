@@ -730,6 +730,9 @@ defmodule PhoenixKit.Modules.Legal do
   @impl PhoenixKit.Module
   def css_sources, do: [:phoenix_kit_legal]
 
+  @impl PhoenixKit.Module
+  def migration_module, do: PhoenixKit.Modules.Legal.Migrations.ConsentLogs
+
   # ===================================
   # PAGE GENERATION
   # ===================================

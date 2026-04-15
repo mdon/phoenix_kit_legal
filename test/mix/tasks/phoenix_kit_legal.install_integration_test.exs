@@ -62,16 +62,16 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallIntegrationTest do
     assert File.exists?(Path.join(tmp_dir, "assets/vendor/phoenix_kit_consent.js"))
   end
 
-  test "run/1 prints next steps mentioning ecto.migrate", %{tmp_dir: _tmp_dir} do
+  test "run/1 prints next steps mentioning phoenix_kit.update", %{tmp_dir: _tmp_dir} do
     output =
       ExUnit.CaptureIO.capture_io(fn ->
         Mix.shell(Mix.Shell.IO)
         Install.run([])
       end)
 
-    assert output =~ "ecto.migrate"
-    assert output =~ "window.PhoenixKitHooks"
-    assert output =~ "PhoenixKitWeb.Live.Modules.Legal"
+    assert output =~ "phoenix_kit.update"
+    assert output =~ "CookieConsent"
+    assert output =~ "phoenix_kit_routes"
     assert output =~ "CookieConsent"
   end
 
