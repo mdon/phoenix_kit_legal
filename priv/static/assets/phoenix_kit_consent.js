@@ -753,16 +753,26 @@
         return response.json();
       })
       .then(function(config) {
+        // Prevent double-init if LiveView hook already initialized the widget
+        if (PhoenixKitConsent.initialized) return;
+
         if (config.enabled && config.should_show !== false) {
           initFromConfig(config);
         } else {
-          log("Consent widget is disabled");
-          // Reset Google Consent Mode to granted state when widget is disabled
+          log("Consent widget disabled or hidden for authenticated user");
+          // Remove server-rendered element if present (e.g. icon rendered for authenticated user)
+          var existingRoot = document.getElementById("pk-consent-root");
+          if (existingRoot) existingRoot.remove();
           resetGoogleConsentMode();
         }
       })
       .catch(function(err) {
-        log("Could not fetch config (widget disabled or endpoint unavailable)", err);
+        log("Could not fetch config, falling back to element init if available", err);
+        // API unavailable — fall back to element-based init (no auth check)
+        var existingRoot = document.getElementById("pk-consent-root");
+        if (existingRoot && !PhoenixKitConsent.initialized) {
+          initFromElement(existingRoot);
+        }
       });
   }
 
@@ -788,22 +798,15 @@
   // Export module
   window.PhoenixKitConsent = PhoenixKitConsent;
 
-  // Auto-init: fetch config from API and inject widget
+  // Auto-init: always go through the config API so auth/should_show is respected.
+  // The server may pre-render a component (e.g. in root.html.heex) — fetchConfigAndInit
+  // will remove it if the user is authenticated and hide_for_authenticated is enabled.
+  // If the LiveView hook fires first (element inside LiveView scope), initialized=true
+  // prevents double-init.
   document.addEventListener("DOMContentLoaded", function() {
-    // Check if widget already exists (injected via component)
-    var existingRoot = document.getElementById("pk-consent-root");
-    if (existingRoot) {
-      // Initialize directly from element — the phx-hook may not fire if the element
-      // is outside the LiveView socket boundary (e.g. placed in root.html.heex).
-      // If hook fires later, it will skip because initialized === true.
-      if (!PhoenixKitConsent.initialized) {
-        initFromElement(existingRoot);
-      }
-      return;
+    if (!PhoenixKitConsent.initialized) {
+      fetchConfigAndInit();
     }
-
-    // Otherwise, fetch config and auto-inject
-    fetchConfigAndInit();
   });
 
 })();
