@@ -756,14 +756,22 @@
         // Prevent double-init if LiveView hook already initialized the widget
         if (PhoenixKitConsent.initialized) return;
 
-        if (config.enabled && config.should_show !== false) {
-          initFromConfig(config);
-        } else {
-          log("Consent widget disabled or hidden for authenticated user");
-          // Remove server-rendered element if present (e.g. icon rendered for authenticated user)
-          var existingRoot = document.getElementById("pk-consent-root");
+        var existingRoot = document.getElementById("pk-consent-root");
+
+        if (!config.enabled || config.should_show === false) {
+          // Remove server-rendered element for authenticated users or disabled widget
           if (existingRoot) existingRoot.remove();
           resetGoogleConsentMode();
+          return;
+        }
+
+        if (existingRoot) {
+          // Server-rendered component is present — initialize from it directly.
+          // This preserves the Tailwind-styled HTML and avoids JS injection layout issues.
+          initFromElement(existingRoot);
+        } else {
+          // No server-rendered component — inject JS widget (legacy / standalone usage)
+          initFromConfig(config);
         }
       })
       .catch(function(err) {
