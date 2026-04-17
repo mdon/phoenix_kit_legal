@@ -209,7 +209,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
             "pk-floating-icon pk-glass fixed z-50 w-12 h-12 rounded-full",
             "flex items-center justify-center cursor-pointer",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "transition-opacity duration-300",
+            "transition-opacity duration-300 opacity-0",
             icon_position_class(@icon_position)
           ]}
           aria-label={gettext("Cookie preferences")}

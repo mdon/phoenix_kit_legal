@@ -542,7 +542,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
   @spec hide_for_authenticated?() :: boolean()
   def hide_for_authenticated? do
-    Settings.get_boolean_setting("legal_hide_for_authenticated", false)
+    Settings.get_boolean_setting("legal_hide_for_authenticated", true)
   end
 
   @doc """
