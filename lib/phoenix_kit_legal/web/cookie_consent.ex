@@ -32,33 +32,38 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
 
   @opt_in_frameworks ~w(gdpr uk_gdpr lgpd pipeda)
 
-  @consent_categories [
-    %{
-      id: "necessary",
-      name: "Essential",
-      icon: "🔒",
-      description: "Required for core functionality. These cannot be disabled.",
-      always_enabled: true
-    },
-    %{
-      id: "analytics",
-      name: "Analytics",
-      icon: "📊",
-      description: "Help us understand how you use our site to improve your experience."
-    },
-    %{
-      id: "marketing",
-      name: "Marketing",
-      icon: "📢",
-      description: "Used for personalized advertising and measuring ad effectiveness."
-    },
-    %{
-      id: "preferences",
-      name: "Preferences",
-      icon: "⚙️",
-      description: "Remember your settings like language and region preferences."
-    }
-  ]
+  # Consent category names and descriptions are resolved at render time via
+  # `translated_categories/0` so they follow the current Gettext locale.
+  defp translated_categories do
+    [
+      %{
+        id: "necessary",
+        name: gettext("Essential"),
+        icon: "🔒",
+        description: gettext("Required for core functionality. These cannot be disabled."),
+        always_enabled: true
+      },
+      %{
+        id: "analytics",
+        name: gettext("Analytics"),
+        icon: "📊",
+        description:
+          gettext("Help us understand how you use our site to improve your experience.")
+      },
+      %{
+        id: "marketing",
+        name: gettext("Marketing"),
+        icon: "📢",
+        description: gettext("Used for personalized advertising and measuring ad effectiveness.")
+      },
+      %{
+        id: "preferences",
+        name: gettext("Preferences"),
+        icon: "⚙️",
+        description: gettext("Remember your settings like language and region preferences.")
+      }
+    ]
+  end
 
   attr :frameworks, :list, default: [], doc: "Selected compliance frameworks"
 
@@ -93,7 +98,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
 
     assigns =
       assigns
-      |> assign(:categories, @consent_categories)
+      |> assign(:categories, translated_categories())
       |> assign(:show_icon, show_icon)
 
     ~H"""

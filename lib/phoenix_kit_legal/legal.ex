@@ -581,13 +581,13 @@ defmodule PhoenixKit.Modules.Legal do
     cookie_policy_url =
       case Enum.find(legal_links, &String.ends_with?(&1.url, "/cookie-policy")) do
         %{url: url} -> url
-        nil -> Routes.path("/legal/cookie-policy")
+        nil -> Routes.path("/legal/cookie-policy", locale: :none)
       end
 
     privacy_policy_url =
       case Enum.find(legal_links, &String.ends_with?(&1.url, "/privacy-policy")) do
         %{url: url} -> url
-        nil -> Routes.path("/legal/privacy-policy")
+        nil -> Routes.path("/legal/privacy-policy", locale: :none)
       end
 
     %{
@@ -602,7 +602,7 @@ defmodule PhoenixKit.Modules.Legal do
       cookie_policy_url: cookie_policy_url,
       privacy_policy_url: privacy_policy_url,
       legal_links: legal_links,
-      legal_index_url: Routes.path("/legal")
+      legal_index_url: Routes.path("/legal", locale: :none)
     }
   end
 
@@ -616,7 +616,7 @@ defmodule PhoenixKit.Modules.Legal do
   def get_published_legal_links do
     list_generated_pages()
     |> Enum.filter(&(&1.status == "published"))
-    |> Enum.map(&%{title: &1.title, url: Routes.path("/legal/#{&1.slug}")})
+    |> Enum.map(&%{title: &1.title, url: Routes.path("/legal/#{&1.slug}", locale: :none)})
   end
 
   @doc """
