@@ -626,12 +626,6 @@
   // =====================================================
 
   function initFromConfig(config) {
-    // Check if widget should be shown (respects hide_for_authenticated)
-    if (config.should_show === false) {
-      log("Widget hidden (user authenticated or disabled)");
-      return;
-    }
-
     PhoenixKitConsent.config = {
       frameworks: config.frameworks || [],
       consentMode: config.consent_mode || "strict",
@@ -744,6 +738,9 @@
     log("Initialized from element", PhoenixKitConsent.config);
   }
 
+  // Manual API: fetch config from server and inject widget.
+  // Not called from auto-init — the server decides visibility at render time
+  // via the cookie_consent component's phoenix_kit_current_scope attr.
   function fetchConfigAndInit() {
     fetch(getConfigEndpoint(), { credentials: "same-origin" })
       .then(function(response) {
@@ -753,34 +750,18 @@
         return response.json();
       })
       .then(function(config) {
-        // Prevent double-init if LiveView hook already initialized the widget
         if (PhoenixKitConsent.initialized) return;
+        if (!config.enabled) return;
 
         var existingRoot = document.getElementById("pk-consent-root");
-
-        if (!config.enabled || config.should_show === false) {
-          // Remove server-rendered element for authenticated users or disabled widget
-          if (existingRoot) existingRoot.remove();
-          resetGoogleConsentMode();
-          return;
-        }
-
         if (existingRoot) {
-          // Server-rendered component is present — initialize from it directly.
-          // This preserves the Tailwind-styled HTML and avoids JS injection layout issues.
           initFromElement(existingRoot);
         } else {
-          // No server-rendered component — inject JS widget (legacy / standalone usage)
           initFromConfig(config);
         }
       })
       .catch(function(err) {
-        log("Could not fetch config, falling back to element init if available", err);
-        // API unavailable — fall back to element-based init (no auth check)
-        var existingRoot = document.getElementById("pk-consent-root");
-        if (existingRoot && !PhoenixKitConsent.initialized) {
-          initFromElement(existingRoot);
-        }
+        log("Could not fetch config", err);
       });
   }
 
@@ -803,18 +784,21 @@
   window.PhoenixKitHooks = window.PhoenixKitHooks || {};
   window.PhoenixKitHooks.CookieConsent = CookieConsentHook;
 
+  // Expose manual-injection entry point for third-party / non-LiveView contexts.
+  PhoenixKitConsent.init = fetchConfigAndInit;
+
   // Export module
   window.PhoenixKitConsent = PhoenixKitConsent;
 
-  // Auto-init: always go through the config API so auth/should_show is respected.
-  // The server may pre-render a component (e.g. in root.html.heex) — fetchConfigAndInit
-  // will remove it if the user is authenticated and hide_for_authenticated is enabled.
-  // If the LiveView hook fires first (element inside LiveView scope), initialized=true
-  // prevents double-init.
+  // Auto-init: the server decides visibility at render time. If it rendered
+  // #pk-consent-root, initialize from that element. Otherwise do nothing —
+  // the user is authenticated (hidden) or the widget is disabled.
+  // LiveView hook may have already initialized via `mounted` — the
+  // `initialized` guard prevents double-init.
   document.addEventListener("DOMContentLoaded", function() {
-    if (!PhoenixKitConsent.initialized) {
-      fetchConfigAndInit();
-    }
+    if (PhoenixKitConsent.initialized) return;
+    var root = document.getElementById("pk-consent-root");
+    if (root) initFromElement(root);
   });
 
 })();

@@ -96,8 +96,15 @@ end
   frameworks={["gdpr"]}
   cookie_policy_url="/legal/cookie-policy"
   privacy_policy_url="/legal/privacy-policy"
+  phoenix_kit_current_scope={@phoenix_kit_current_scope}
 />
 ```
+
+Pass `phoenix_kit_current_scope={@phoenix_kit_current_scope}` so the component
+can decide server-side whether to render for authenticated users. The assign
+is already available in root layouts wired via `PhoenixKitWeb.Integration`.
+Omitting it is safe — the widget renders for everyone (same as an anonymous
+visitor), but the "Hide for authenticated users" setting will have no effect.
 
 PhoenixKit auto-discovers the module at startup — no additional configuration needed.
 

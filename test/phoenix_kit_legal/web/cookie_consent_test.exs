@@ -1,0 +1,55 @@
+defmodule PhoenixKit.Modules.Legal.CookieConsentTest do
+  use ExUnit.Case, async: false
+
+  import Phoenix.LiveViewTest, only: [render_component: 2]
+
+  alias PhoenixKit.Modules.Legal.CookieConsent
+  alias PhoenixKit.Users.Auth.Scope
+
+  @hide_key "legal_hide_for_authenticated"
+
+  setup do
+    # Default each test to hide_for_authenticated?=true (same as prod default).
+    PhoenixKit.Cache.put(:settings, @hide_key, "true")
+    :ok
+  end
+
+  defp authenticated_scope do
+    %Scope{authenticated?: true, user: %{id: 1}}
+  end
+
+  defp anonymous_scope do
+    %Scope{authenticated?: false, user: nil}
+  end
+
+  defp render(opts) do
+    render_component(
+      &CookieConsent.cookie_consent/1,
+      Keyword.merge([frameworks: ["gdpr"], consent_mode: "strict"], opts)
+    )
+  end
+
+  test "renders full widget when scope is nil (backward-compatible)" do
+    html = render(phoenix_kit_current_scope: nil)
+    assert html =~ "pk-consent-root"
+    assert html =~ "pk-consent-banner"
+  end
+
+  test "renders full widget for anonymous scope" do
+    html = render(phoenix_kit_current_scope: anonymous_scope())
+    assert html =~ "pk-consent-root"
+  end
+
+  test "returns empty output for authenticated scope when hide_for_authenticated? is true" do
+    PhoenixKit.Cache.put(:settings, @hide_key, "true")
+    html = render(phoenix_kit_current_scope: authenticated_scope())
+    refute html =~ "pk-consent-root"
+    assert String.trim(html) == ""
+  end
+
+  test "renders full widget for authenticated scope when hide_for_authenticated? is false" do
+    PhoenixKit.Cache.put(:settings, @hide_key, "false")
+    html = render(phoenix_kit_current_scope: authenticated_scope())
+    assert html =~ "pk-consent-root"
+  end
+end

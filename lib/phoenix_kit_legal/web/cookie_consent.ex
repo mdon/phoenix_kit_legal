@@ -30,6 +30,9 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
   use Phoenix.Component
   use Gettext, backend: PhoenixKitWeb.Gettext
 
+  alias PhoenixKit.Modules.Legal
+  alias PhoenixKit.Users.Auth.Scope
+
   @opt_in_frameworks ~w(gdpr uk_gdpr lgpd pipeda)
 
   # Consent category names and descriptions are resolved at render time via
@@ -90,7 +93,25 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
   attr :google_consent_mode, :boolean, default: false, doc: "Enable Google Consent Mode v2"
   attr :class, :string, default: ""
 
+  attr :phoenix_kit_current_scope, :any,
+    default: nil,
+    doc: "PhoenixKit scope for auth-based visibility check"
+
   def cookie_consent(assigns) do
+    if should_hide_for_user?(assigns[:phoenix_kit_current_scope]) do
+      ~H""
+    else
+      render_cookie_consent(assigns)
+    end
+  end
+
+  defp should_hide_for_user?(nil), do: false
+
+  defp should_hide_for_user?(scope) do
+    Scope.authenticated?(scope) and Legal.hide_for_authenticated?()
+  end
+
+  defp render_cookie_consent(assigns) do
     # Icon only shown in strict mode with opt-in frameworks
     show_icon =
       assigns.consent_mode == "strict" and
@@ -214,7 +235,6 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
             "pk-floating-icon pk-glass fixed z-50 w-12 h-12 rounded-full",
             "flex items-center justify-center cursor-pointer",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "transition-opacity duration-300 opacity-0",
             icon_position_class(@icon_position)
           ]}
           aria-label={gettext("Cookie preferences")}

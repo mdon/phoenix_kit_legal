@@ -62,7 +62,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
       # Consent widget assigns (Phase 2)
       |> assign(:consent_widget_enabled, widget_config.enabled)
       |> assign(:consent_mode, widget_config.consent_mode)
-      |> assign(:hide_for_authenticated, widget_config.hide_for_authenticated)
+      |> assign(:hide_for_authenticated, Legal.hide_for_authenticated?())
       |> assign(:icon_position, widget_config.icon_position)
       |> assign(:policy_version, widget_config.policy_version)
       |> assign(:google_consent_mode, widget_config.google_consent_mode)

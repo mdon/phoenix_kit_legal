@@ -136,9 +136,15 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       result = Mix.Tasks.PhoenixKitLegal.Install.insert_css_source(css)
 
       assert result =~ ~s(@source "../../deps/phoenix_kit_legal";)
+
       # Appears after the last existing @source (trim trailing semicolon + newline from split boundary)
-      [_, after_sources] = String.split(result, ~s(@source "../../deps/phoenix_live_view"), parts: 2)
-      assert String.starts_with?(String.trim_leading(after_sources, ";\n"), ~s(@source "../../deps/phoenix_kit_legal"))
+      [_, after_sources] =
+        String.split(result, ~s(@source "../../deps/phoenix_live_view"), parts: 2)
+
+      assert String.starts_with?(
+               String.trim_leading(after_sources, ";\n"),
+               ~s(@source "../../deps/phoenix_kit_legal")
+             )
     end
 
     test "idempotent — does not duplicate if already present" do
@@ -158,10 +164,12 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       File.mkdir_p!(dir)
       original_cwd = File.cwd!()
       File.cd!(dir)
+
       on_exit(fn ->
         File.cd!(original_cwd)
         File.rm_rf!(dir)
       end)
+
       {:ok, dir: dir}
     end
 

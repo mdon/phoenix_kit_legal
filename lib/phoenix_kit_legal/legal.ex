@@ -567,7 +567,6 @@ defmodule PhoenixKit.Modules.Legal do
   - icon_position: string
   - policy_version: string
   - google_consent_mode: boolean
-  - hide_for_authenticated: boolean
   - frameworks: list of framework IDs
   - cookie_policy_url: string (backward compat, derived from published pages)
   - privacy_policy_url: string (backward compat, derived from published pages)
@@ -594,7 +593,6 @@ defmodule PhoenixKit.Modules.Legal do
       enabled: consent_widget_enabled?(),
       consent_mode: get_consent_mode(),
       show_icon: should_show_consent_icon?(),
-      hide_for_authenticated: hide_for_authenticated?(),
       icon_position: get_icon_position(),
       policy_version: get_auto_policy_version(),
       google_consent_mode: google_consent_mode_enabled?(),

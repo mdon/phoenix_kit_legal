@@ -91,14 +91,20 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     # Try to find the last occurrence of `plug Plug.Static`
     case last_plug_static_position(content) do
       {:ok, pos} ->
-        patched = String.slice(content, 0, pos) <> @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+        patched =
+          String.slice(content, 0, pos) <>
+            @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+
         {:ok, patched}
 
       :none ->
         # Fall back: insert before `plug :router`
         case find_router_plug_position(content) do
           {:ok, pos} ->
-            patched = String.slice(content, 0, pos) <> @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+            patched =
+              String.slice(content, 0, pos) <>
+                @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+
             {:ok, patched}
 
           :none ->
@@ -138,6 +144,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
     Enum.reduce_while((start_idx + 1)..(total - 1), start_idx, fn i, last ->
       line = Enum.at(lines, i)
+
       cond do
         # blank line — block ended
         String.trim(line) == "" -> {:halt, last}
@@ -234,6 +241,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
       case Enum.find(css_paths, &File.exists?/1) do
         nil ->
           Mix.shell().info("  ⚠  Could not find app.css — add @source manually.")
+
         path ->
           content = File.read!(path)
           updated = insert_css_source(content)
@@ -340,7 +348,12 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
            frameworks={["gdpr"]}
            cookie_policy_url="/legal/cookie-policy"
            privacy_policy_url="/legal/privacy-policy"
+           phoenix_kit_current_scope={@phoenix_kit_current_scope}
          />
+
+       The `phoenix_kit_current_scope` attribute is required so the widget can
+       decide server-side whether to render for authenticated users (see the
+       "Hide for authenticated users" setting in Admin → Legal).
 
     3. Enable the Legal module in Admin → Modules.
        Routes and admin settings are wired automatically via phoenix_kit_routes().
