@@ -537,8 +537,13 @@ defmodule PhoenixKit.Modules.Legal do
   def update_consent_mode(_), do: {:error, :invalid_mode}
 
   @doc """
-  Check if consent widget should be hidden for authenticated users.
-  Only applies in "notice" mode.
+  Returns true if the cookie consent widget should be hidden for authenticated users.
+
+  When true, the `cookie_consent/1` component renders nothing for authenticated users
+  (both strict and notice modes). Requires `phoenix_kit_current_scope` to be passed
+  to the component — without it, this setting has no effect.
+
+  Default: `true`.
   """
   @spec hide_for_authenticated?() :: boolean()
   def hide_for_authenticated? do

@@ -2,12 +2,11 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
   @moduledoc """
   Installs PhoenixKitLegal into a Phoenix application.
 
-  Automatically patches four files in the host application:
+  Automatically patches three files in the host application:
 
   1. `lib/**/endpoint.ex` — adds `Plug.Static` to serve consent JS assets
   2. `assets/css/app.css` — adds Tailwind `@source` for legal component classes
   3. `assets/js/app.js` — adds consent JS import (side-effect IIFE)
-  4. `assets/vendor/` — copies `phoenix_kit_consent.js` for esbuild
 
   Routes are wired automatically via `phoenix_kit_routes()`.
   Migrations run via `mix phoenix_kit.update`.
@@ -43,7 +42,6 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     patch_endpoint()
     patch_css()
     patch_app_js()
-    copy_js_to_vendor()
     print_next_steps()
 
     Mix.shell().info("\nPhoenixKitLegal installed successfully!")
@@ -318,21 +316,6 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     end
   end
 
-  @doc false
-  def copy_js_to_vendor do
-    src = Application.app_dir(:phoenix_kit_legal, "priv/static/assets/phoenix_kit_consent.js")
-    dest_dir = "assets/vendor"
-    dest = Path.join(dest_dir, "phoenix_kit_consent.js")
-
-    if File.exists?(dest) do
-      Mix.shell().info("  [skip] #{dest} already exists.")
-    else
-      File.mkdir_p!(dest_dir)
-      File.copy!(src, dest)
-      Mix.shell().info("  [ok]   Copied phoenix_kit_consent.js to #{dest}.")
-    end
-  end
-
   defp print_next_steps do
     Mix.shell().info("""
 
@@ -346,8 +329,6 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
          <PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
            frameworks={["gdpr"]}
-           cookie_policy_url="/legal/cookie-policy"
-           privacy_policy_url="/legal/privacy-policy"
            phoenix_kit_current_scope={@phoenix_kit_current_scope}
          />
 

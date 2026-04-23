@@ -21,8 +21,6 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
         frameworks={["gdpr"]}
         icon_position="bottom-right"
         policy_version="1.0"
-        cookie_policy_url="/legal/cookie-policy"
-        privacy_policy_url="/legal/privacy-policy"
         google_consent_mode={true}
       />
   """
@@ -81,12 +79,6 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
     doc: "Position of floating icon"
 
   attr :policy_version, :string, default: "1.0", doc: "Policy version for consent tracking"
-  attr :cookie_policy_url, :string, default: "/legal/cookie-policy"
-  attr :privacy_policy_url, :string, default: "/legal/privacy-policy"
-
-  attr :legal_links, :list,
-    default: [],
-    doc: "Dynamic list of %{title, url} for published legal pages"
 
   attr :legal_index_url, :string, default: "/legal", doc: "URL to legal pages index"
 

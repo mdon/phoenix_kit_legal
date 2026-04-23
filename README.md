@@ -73,7 +73,7 @@ mix ecto.migrate
 
 ```js
 // Side-effect import — IIFE registers window.PhoenixKitHooks.CookieConsent
-import "../vendor/phoenix_kit_consent.js"
+import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"
 
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: { ...Hooks, ...window.PhoenixKitHooks },
@@ -94,8 +94,6 @@ end
 ```heex
 <PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
   frameworks={["gdpr"]}
-  cookie_policy_url="/legal/cookie-policy"
-  privacy_policy_url="/legal/privacy-policy"
   phoenix_kit_current_scope={@phoenix_kit_current_scope}
 />
 ```
@@ -286,7 +284,7 @@ Requires either `user_uuid` or `session_id` (at least one must be present).
 | `legal_cookie_banner_position` | `"bottom-right"` | Widget icon position |
 | `legal_policy_version` | `"1.0"` | Manual policy version string |
 | `legal_google_consent_mode` | `false` | Enable Google Consent Mode v2 |
-| `legal_hide_for_authenticated` | `false` | Hide widget for logged-in users |
+| `legal_hide_for_authenticated` | `true` | Hide widget for logged-in users |
 
 ## API Endpoint
 

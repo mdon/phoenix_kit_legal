@@ -153,52 +153,6 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
     end
   end
 
-  describe "copy_js_to_vendor/0" do
-    test "source JS file exists in priv/static/assets" do
-      src = Application.app_dir(:phoenix_kit_legal, "priv/static/assets/phoenix_kit_consent.js")
-      assert File.exists?(src)
-    end
-
-    setup do
-      dir = System.tmp_dir!() |> Path.join("phoenix_kit_legal_vendor_#{:rand.uniform(100_000)}")
-      File.mkdir_p!(dir)
-      original_cwd = File.cwd!()
-      File.cd!(dir)
-
-      on_exit(fn ->
-        File.cd!(original_cwd)
-        File.rm_rf!(dir)
-      end)
-
-      {:ok, dir: dir}
-    end
-
-    test "copies phoenix_kit_consent.js into assets/vendor/" do
-      Install.copy_js_to_vendor()
-
-      assert File.exists?("assets/vendor/phoenix_kit_consent.js")
-      content = File.read!("assets/vendor/phoenix_kit_consent.js")
-      assert byte_size(content) > 0
-    end
-
-    test "idempotent — does not overwrite if dest already exists" do
-      File.mkdir_p!("assets/vendor")
-      File.write!("assets/vendor/phoenix_kit_consent.js", "existing content")
-
-      Install.copy_js_to_vendor()
-
-      assert File.read!("assets/vendor/phoenix_kit_consent.js") == "existing content"
-    end
-
-    test "creates assets/vendor/ directory if missing" do
-      refute File.exists?("assets/vendor")
-
-      Install.copy_js_to_vendor()
-
-      assert File.dir?("assets/vendor")
-    end
-  end
-
   describe "app.js patching" do
     test "inserts import after phoenix_kit.js line" do
       js = """

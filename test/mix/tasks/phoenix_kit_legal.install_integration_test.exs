@@ -57,11 +57,6 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallIntegrationTest do
     assert String.contains?(content, "phoenix_kit_legal")
   end
 
-  test "run/1 copies phoenix_kit_consent.js to assets/vendor/", %{tmp_dir: tmp_dir} do
-    Install.run([])
-    assert File.exists?(Path.join(tmp_dir, "assets/vendor/phoenix_kit_consent.js"))
-  end
-
   test "run/1 prints next steps mentioning phoenix_kit.update", %{tmp_dir: _tmp_dir} do
     output =
       ExUnit.CaptureIO.capture_io(fn ->
