@@ -3,12 +3,18 @@ defmodule PhoenixKitWeb.Controllers.ConsentConfigController do
   API controller for cookie consent widget configuration.
 
   Returns the consent widget configuration as JSON for client-side initialization.
-  This endpoint is intentionally auth-agnostic: whether to show the widget to an
-  authenticated user is decided server-side by the `cookie_consent` component at
-  render time (via its `phoenix_kit_current_scope` attribute).
 
-  Used by the manual `window.PhoenixKitConsent.init()` entry point for third-party
-  / non-LiveView injection contexts.
+  This endpoint is intentionally auth-agnostic by design: it performs no
+  per-request user check, so the response is safely cacheable. Whether to
+  show the widget to an authenticated user is decided server-side by the
+  `cookie_consent` component at render time (via its `phoenix_kit_current_scope`
+  attribute).
+
+  Used by the manual `window.PhoenixKitConsent.init()` entry point for
+  third-party / non-LiveView injection contexts. Because this endpoint does
+  not gate on auth, manual callers of `init()` are responsible for
+  implementing their own auth checks before invoking it on pages where
+  authenticated users should not see the widget.
   """
   use PhoenixKitWeb, :controller
 

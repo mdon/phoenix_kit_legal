@@ -292,7 +292,7 @@ Requires either `user_uuid` or `session_id` (at least one must be present).
 
 **`GET /phoenix_kit/api/consent-config`** — Returns widget configuration as JSON.
 
-Used by the client-side consent manager to initialize the widget. Cached publicly (60s) unless `hide_for_authenticated` is enabled.
+Used by the client-side consent manager to initialize the widget. Cached publicly for 60 seconds. Auth-gating is handled server-side by the component, not this endpoint.
 
 ## Development
 

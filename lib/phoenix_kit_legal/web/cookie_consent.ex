@@ -105,11 +105,11 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
     end
   end
 
-  defp should_hide_for_user?(nil), do: false
-
-  defp should_hide_for_user?(scope) do
+  defp should_hide_for_user?(%Scope{} = scope) do
     Scope.authenticated?(scope) and Legal.hide_for_authenticated?()
   end
+
+  defp should_hide_for_user?(_), do: false
 
   defp render_cookie_consent(assigns) do
     # Icon only shown in strict mode with opt-in frameworks

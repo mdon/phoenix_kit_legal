@@ -197,8 +197,11 @@
   }
 
   function resetGoogleConsentMode() {
-    // Reset Google Consent Mode to granted state when widget is disabled
-    // This ensures no blocking occurs when the consent widget is turned off
+    // Reset Google Consent Mode to granted when the widget is not rendered
+    // (widget disabled globally, or hidden for this authenticated user).
+    // Without this, an authenticated user whose prior anonymous session set
+    // GCM to "denied" would stay denied forever, since the widget is the
+    // only path that normally updates GCM state.
     if (typeof window.dataLayer === "undefined") return;
 
     function gtag() { window.dataLayer.push(arguments); }
@@ -741,6 +744,13 @@
   // Manual API: fetch config from server and inject widget.
   // Not called from auto-init — the server decides visibility at render time
   // via the cookie_consent component's phoenix_kit_current_scope attr.
+  //
+  // WARNING: calling window.PhoenixKitConsent.init() from a third-party page
+  // BYPASSES the server-side auth gate. The config API backing this call is
+  // auth-agnostic by design (cacheable, no per-request user check), so the
+  // widget will render regardless of whether the current user is authenticated.
+  // If you call init() on pages where authenticated users should not see the
+  // widget, you MUST perform your own auth check before calling it.
   function fetchConfigAndInit() {
     fetch(getConfigEndpoint(), { credentials: "same-origin" })
       .then(function(response) {
@@ -798,7 +808,13 @@
   document.addEventListener("DOMContentLoaded", function() {
     if (PhoenixKitConsent.initialized) return;
     var root = document.getElementById("pk-consent-root");
-    if (root) initFromElement(root);
+    if (root) {
+      initFromElement(root);
+    } else if (typeof window.gtag === "function") {
+      // Widget hidden (authenticated user or disabled) — reset GCM so any
+      // prior anonymous-session "denied" state doesn't persist for this user.
+      resetGoogleConsentMode();
+    }
   });
 
 })();

@@ -52,4 +52,9 @@ defmodule PhoenixKit.Modules.Legal.CookieConsentTest do
     html = render(phoenix_kit_current_scope: authenticated_scope())
     assert html =~ "pk-consent-root"
   end
+
+  test "renders full widget when scope is a plain map (non-Scope struct, no crash)" do
+    html = render(phoenix_kit_current_scope: %{authenticated?: true, user: %{id: 1}})
+    assert html =~ "pk-consent-root"
+  end
 end

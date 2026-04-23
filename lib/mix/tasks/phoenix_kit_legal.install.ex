@@ -351,9 +351,10 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
            phoenix_kit_current_scope={@phoenix_kit_current_scope}
          />
 
-       The `phoenix_kit_current_scope` attribute is required so the widget can
-       decide server-side whether to render for authenticated users (see the
-       "Hide for authenticated users" setting in Admin → Legal).
+       The `phoenix_kit_current_scope` attribute is recommended (not required).
+       Omitting it is safe — the widget will render for all visitors — but
+       without it the "Hide for authenticated users" setting in Admin → Legal
+       has no effect, since the widget has no way to know who the user is.
 
     3. Enable the Legal module in Admin → Modules.
        Routes and admin settings are wired automatically via phoenix_kit_routes().
