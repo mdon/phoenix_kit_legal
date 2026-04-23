@@ -196,29 +196,6 @@
     log("Google Consent Mode updated", consent);
   }
 
-  function resetGoogleConsentMode() {
-    // Reset Google Consent Mode to granted when the widget is not rendered
-    // (widget disabled globally, or hidden for this authenticated user).
-    // Without this, an authenticated user whose prior anonymous session set
-    // GCM to "denied" would stay denied forever, since the widget is the
-    // only path that normally updates GCM state.
-    if (typeof window.dataLayer === "undefined") return;
-
-    function gtag() { window.dataLayer.push(arguments); }
-
-    gtag("consent", "update", {
-      "ad_storage": "granted",
-      "analytics_storage": "granted",
-      "ad_user_data": "granted",
-      "ad_personalization": "granted",
-      "personalization_storage": "granted",
-      "functionality_storage": "granted",
-      "security_storage": "granted"
-    });
-
-    log("Google Consent Mode reset to granted (widget disabled)");
-  }
-
   // =====================================================
   // SCRIPT BLOCKING
   // =====================================================
@@ -808,13 +785,7 @@
   document.addEventListener("DOMContentLoaded", function() {
     if (PhoenixKitConsent.initialized) return;
     var root = document.getElementById("pk-consent-root");
-    if (root) {
-      initFromElement(root);
-    } else if (typeof window.gtag === "function") {
-      // Widget hidden (authenticated user or disabled) — reset GCM so any
-      // prior anonymous-session "denied" state doesn't persist for this user.
-      resetGoogleConsentMode();
-    }
+    if (root) initFromElement(root);
   });
 
 })();

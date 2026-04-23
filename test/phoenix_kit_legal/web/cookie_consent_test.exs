@@ -57,4 +57,9 @@ defmodule PhoenixKit.Modules.Legal.CookieConsentTest do
     html = render(phoenix_kit_current_scope: %{authenticated?: true, user: %{id: 1}})
     assert html =~ "pk-consent-root"
   end
+
+  test "renders full widget for unknown struct (scope ignored, no crash)" do
+    html = render(phoenix_kit_current_scope: %URI{host: "example.com"})
+    assert html =~ "pk-consent-root"
+  end
 end
