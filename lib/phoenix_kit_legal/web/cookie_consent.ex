@@ -82,6 +82,14 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
 
   attr :legal_index_url, :string, default: "/legal", doc: "URL to legal pages index"
 
+  # Accepted for backward compatibility with PhoenixKit default layouts
+  # (which pass these from Legal.get_consent_widget_config/0). The template
+  # renders links via @legal_index_url only; these attrs are unused here but
+  # are consumed by the JS-injected widget path via the config API.
+  attr :cookie_policy_url, :string, default: nil
+  attr :privacy_policy_url, :string, default: nil
+  attr :legal_links, :list, default: []
+
   attr :google_consent_mode, :boolean, default: false, doc: "Enable Google Consent Mode v2"
   attr :class, :string, default: ""
 
