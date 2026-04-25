@@ -32,6 +32,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
 
   use PhoenixKit.Module
+  use Gettext, backend: PhoenixKitWeb.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -605,7 +606,44 @@ defmodule PhoenixKit.Modules.Legal do
       cookie_policy_url: cookie_policy_url,
       privacy_policy_url: privacy_policy_url,
       legal_links: legal_links,
-      legal_index_url: Routes.path("/legal", locale: :none)
+      legal_index_url: Routes.path("/legal", locale: :none),
+      translations: %{
+        banner_title: gettext("We value your privacy"),
+        banner_message:
+          gettext("We use cookies to enhance your browsing experience and analyze our traffic."),
+        banner_aria_label: gettext("Cookie consent"),
+        customize: gettext("Customize"),
+        reject: gettext("Reject"),
+        accept_all: gettext("Accept All"),
+        modal_title: gettext("Privacy Preferences"),
+        modal_subtitle: gettext("Manage your cookie settings"),
+        modal_close_aria: gettext("Close"),
+        reject_all: gettext("Reject All"),
+        save_preferences: gettext("Save Preferences"),
+        required: gettext("Required"),
+        legal_link: gettext("Legal"),
+        icon_aria_label: gettext("Cookie preferences"),
+        categories: %{
+          necessary: %{
+            name: gettext("Essential"),
+            description: gettext("Required for core functionality. These cannot be disabled.")
+          },
+          analytics: %{
+            name: gettext("Analytics"),
+            description:
+              gettext("Help us understand how you use our site to improve your experience.")
+          },
+          marketing: %{
+            name: gettext("Marketing"),
+            description:
+              gettext("Used for personalized advertising and measuring ad effectiveness.")
+          },
+          preferences: %{
+            name: gettext("Preferences"),
+            description: gettext("Remember your settings like language and region preferences.")
+          }
+        }
+      }
     }
   end
 
@@ -956,6 +994,28 @@ defmodule PhoenixKit.Modules.Legal do
   # PRIVATE HELPERS
   # ===================================
 
+  # Dummy function to mark page titles for gettext extraction.
+  # Never called — exists only so `mix gettext.extract` sees these strings.
+  # Runtime translation happens via `translate_title/2` below.
+  @doc false
+  def __extract_titles__ do
+    [
+      gettext("Privacy Policy"),
+      gettext("Cookie Policy"),
+      gettext("Terms of Service"),
+      gettext("Do Not Sell My Personal Information"),
+      gettext("Data Retention Policy"),
+      gettext("CCPA Notice at Collection"),
+      gettext("Acceptable Use Policy")
+    ]
+  end
+
+  defp translate_title(title, language) do
+    Gettext.with_locale(PhoenixKitWeb.Gettext, language, fn ->
+      Gettext.gettext(PhoenixKitWeb.Gettext, title)
+    end)
+  end
+
   defp publishing_enabled? do
     publishing_module().enabled?()
   rescue
@@ -1053,7 +1113,7 @@ defmodule PhoenixKit.Modules.Legal do
   end
 
   defp create_or_update_legal_post(page_config, content, language, scope) do
-    full_content = "# #{page_config.title}\n\n#{content}"
+    full_content = "# #{translate_title(page_config.title, language)}\n\n#{content}"
 
     case publishing_module().read_post(@legal_blog_slug, page_config.slug) do
       {:ok, existing_post} ->
@@ -1141,7 +1201,7 @@ defmodule PhoenixKit.Modules.Legal do
     publishing_module().update_post(
       @legal_blog_slug,
       lang_post,
-      %{"content" => full_content, "title" => page_config.title},
+      %{"content" => full_content, "title" => translate_title(page_config.title, language)},
       scope: scope
     )
   end
@@ -1151,7 +1211,7 @@ defmodule PhoenixKit.Modules.Legal do
   defp create_new_legal_post(page_config, full_content, language, scope) do
     with {:ok, post} <-
            publishing_module().create_post(@legal_blog_slug, %{
-             title: page_config.title,
+             title: translate_title(page_config.title, language),
              slug: page_config.slug,
              scope: scope
            }) do
@@ -1175,7 +1235,11 @@ defmodule PhoenixKit.Modules.Legal do
         publishing_module().update_post(
           @legal_blog_slug,
           lang_post,
-          %{"content" => full_content, "title" => page_config.title, "status" => "draft"},
+          %{
+            "content" => full_content,
+            "title" => translate_title(page_config.title, language),
+            "status" => "draft"
+          },
           scope: scope
         )
       end
