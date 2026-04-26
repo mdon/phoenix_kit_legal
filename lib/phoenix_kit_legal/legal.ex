@@ -621,7 +621,8 @@ defmodule PhoenixKit.Modules.Legal do
         reject_all: gettext("Reject All"),
         save_preferences: gettext("Save Preferences"),
         required: gettext("Required"),
-        legal_link: gettext("Legal"),
+        privacy_policy_label: gettext("Privacy Policy"),
+        cookie_policy_label: gettext("Cookie Policy"),
         icon_aria_label: gettext("Cookie preferences"),
         categories: %{
           necessary: %{

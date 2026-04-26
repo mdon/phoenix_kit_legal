@@ -335,8 +335,8 @@
               '<div>' +
                 '<h3 style="font-weight:600;font-size:0.875rem;margin:0;color:var(--pk-text)">' + t("banner_title", "We value your privacy") + '</h3>' +
                 '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' +
-                  t("banner_message", "We use cookies to enhance your experience.") + ' ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">Cookie Policy</a>' +
+                  t("banner_message", "We use cookies to enhance your browsing experience and analyze our traffic.") + ' ' +
+                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">' + t("cookie_policy_label", "Cookie Policy") + '</a>' +
                 '</p>' +
               '</div>' +
             '</div>' +
@@ -384,9 +384,9 @@
             '<div style="padding:1rem 1.5rem;border-top:1px solid var(--pk-border);background:var(--pk-bg-alt)">' +
               '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem">' +
                 '<div style="font-size:0.75rem;color:var(--pk-text-muted)">' +
-                  '<a href="' + (config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">Privacy Policy</a>' +
+                  '<a href="' + (config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + t("privacy_policy_label", "Privacy Policy") + '</a>' +
                   ' • ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">Cookie Policy</a>' +
+                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + t("cookie_policy_label", "Cookie Policy") + '</a>' +
                 '</div>' +
                 '<div style="margin-left:auto;display:flex;gap:0.5rem">' +
                   '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + t("reject_all", "Reject All") + '</button>' +
