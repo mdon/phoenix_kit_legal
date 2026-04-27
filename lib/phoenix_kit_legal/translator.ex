@@ -78,8 +78,17 @@ defmodule PhoenixKitLegal.Translator do
     bindings_map = Map.new(bindings)
 
     case @core_backend.lgettext(locale, "default", nil, msgid, bindings_map) do
-      {:ok, translated} -> translated
-      {:default, default} -> host_fallback(locale, msgid, bindings_map, default)
+      {:ok, translated} ->
+        translated
+
+      {:missing_bindings, partial, _missing} ->
+        # Translation exists but binding map didn't supply all keys —
+        # return the partially interpolated string rather than crashing
+        # or falling back to the host (which would just repeat the issue).
+        partial
+
+      {:default, default} ->
+        host_fallback(locale, msgid, bindings_map, default)
     end
   end
 
@@ -89,9 +98,10 @@ defmodule PhoenixKitLegal.Translator do
         default
 
       backend when is_atom(backend) ->
-        if Code.ensure_loaded?(backend) do
+        if Code.ensure_loaded?(backend) and function_exported?(backend, :lgettext, 5) do
           case backend.lgettext(locale, "default", nil, msgid, bindings_map) do
             {:ok, translated} -> translated
+            {:missing_bindings, partial, _} -> partial
             _ -> default
           end
         else
@@ -113,7 +123,7 @@ defmodule PhoenixKitLegal.Translator do
     host = Application.get_env(:phoenix_kit_legal, :host_gettext_backend)
 
     Gettext.with_locale(@core_backend, locale, fn ->
-      if host && Code.ensure_loaded?(host) do
+      if host && Code.ensure_loaded?(host) && function_exported?(host, :lgettext, 5) do
         Gettext.with_locale(host, locale, fun)
       else
         fun.()
