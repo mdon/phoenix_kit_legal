@@ -9,9 +9,9 @@
   <div class="container flex flex-col mx-auto px-4 py-6">
     <.admin_page_header
       back={PhoenixKit.Utils.Routes.path("/admin/settings", locale: @current_locale_base)}
-      title={gettext("Legal Settings")}
+      title={t("Legal Settings")}
       subtitle={
-        gettext("Configure compliance frameworks, company information, and generate legal pages.")
+        t("Configure compliance frameworks, company information, and generate legal pages.")
       }
     />
 
@@ -33,7 +33,7 @@
             />
           </svg>
           <span>
-            {gettext(
+            {t(
               "Publishing module is required for Legal pages. Please enable Publishing first."
             )}
           </span>
@@ -41,7 +41,7 @@
             navigate={PhoenixKit.Utils.Routes.path("/admin/settings/publishing")}
             class="btn btn-sm"
           >
-            {gettext("Enable Publishing")}
+            {t("Enable Publishing")}
           </.link>
         </div>
       <% end %>
@@ -50,9 +50,9 @@
         <%!-- Section 1: Compliance Frameworks --%>
         <div class="card bg-base-100 shadow">
           <div class="card-body">
-            <h2 class="card-title">{gettext("Compliance Frameworks")}</h2>
+            <h2 class="card-title">{t("Compliance Frameworks")}</h2>
             <p class="text-sm text-base-content/60 mb-4">
-              {gettext("Select the privacy regulations your application must comply with.")}
+              {t("Select the privacy regulations your application must comply with.")}
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -81,7 +81,7 @@
         <div class="card bg-base-100 shadow">
           <div class="card-body">
             <div class="flex items-center justify-between">
-              <h2 class="card-title">{gettext("Company Information")}</h2>
+              <h2 class="card-title">{t("Company Information")}</h2>
               <div class="flex gap-2">
                 <.link
                   navigate={
@@ -92,7 +92,7 @@
                   class="btn btn-sm btn-primary"
                 >
                   <.icon name="hero-pencil-square" class="w-4 h-4" />
-                  {gettext("Edit Organization")}
+                  {t("Edit Organization")}
                 </.link>
                 <.link
                   navigate={
@@ -101,12 +101,12 @@
                   class="btn btn-sm btn-outline"
                 >
                   <.icon name="hero-globe-alt" class="w-4 h-4" />
-                  {gettext("Edit Site URL")}
+                  {t("Edit Site URL")}
                 </.link>
               </div>
             </div>
             <p class="text-sm text-base-content/60 mb-4">
-              {gettext("This information will appear in your legal documents.")}
+              {t("This information will appear in your legal documents.")}
             </p>
 
             <%= if @company_info["name"] == "" do %>
@@ -114,9 +114,9 @@
               <div class="alert alert-warning">
                 <.icon name="hero-exclamation-triangle" class="w-5 h-5" />
                 <div>
-                  <p class="font-medium">{gettext("Company information not configured")}</p>
+                  <p class="font-medium">{t("Company information not configured")}</p>
                   <p class="text-sm">
-                    {gettext("Go to Settings → Organization to set up your company details.")}
+                    {t("Go to Settings → Organization to set up your company details.")}
                   </p>
                 </div>
               </div>
@@ -129,7 +129,7 @@
                     <p class="font-semibold">{@company_info["name"]}</p>
                     <%= if @company_info["registration_number"] != "" do %>
                       <p class="text-xs text-base-content/60">
-                        {gettext("Reg. No:")} {@company_info["registration_number"]}
+                        {t("Reg. No:")} {@company_info["registration_number"]}
                       </p>
                     <% end %>
                   </div>
@@ -161,7 +161,7 @@
                   <div class="flex items-start gap-2">
                     <.icon name="hero-document-text" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
                     <div class="text-sm">
-                      <span class="text-base-content/60">{gettext("VAT:")}</span> {@company_info[
+                      <span class="text-base-content/60">{t("VAT:")}</span> {@company_info[
                         "vat_number"
                       ]}
                     </div>
@@ -182,7 +182,7 @@
                       class="w-5 h-5 text-base-content/40 shrink-0 mt-0.5"
                     />
                     <span class="text-sm text-base-content/60 italic">
-                      {gettext("Site URL not configured")}
+                      {t("Site URL not configured")}
                     </span>
                   </div>
                 <% end %>
@@ -194,16 +194,16 @@
         <%!-- Section 3: DPO Contact --%>
         <div class="card bg-base-100 shadow">
           <div class="card-body">
-            <h2 class="card-title">{gettext("Data Protection Officer (DPO)")}</h2>
+            <h2 class="card-title">{t("Data Protection Officer (DPO)")}</h2>
             <p class="text-sm text-base-content/60 mb-4">
-              {gettext("Required for GDPR compliance. Leave empty if not applicable.")}
+              {t("Required for GDPR compliance. Leave empty if not applicable.")}
             </p>
 
             <form phx-submit="save_dpo_contact">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{gettext("DPO Name")}</span>
+                    <span class="label-text">{t("DPO Name")}</span>
                   </label>
                   <input
                     type="text"
@@ -215,7 +215,7 @@
 
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{gettext("DPO Email")}</span>
+                    <span class="label-text">{t("DPO Email")}</span>
                   </label>
                   <div class="join w-full">
                     <input
@@ -230,7 +230,7 @@
                         type="button"
                         class="btn btn-outline join-item"
                         phx-click="import_dpo_email"
-                        title={gettext("Import from General Settings")}
+                        title={t("Import from General Settings")}
                       >
                         <.icon name="hero-arrow-down-tray" class="w-4 h-4" />
                       </button>
@@ -239,7 +239,7 @@
                   <%= if @from_email != "" do %>
                     <label class="label">
                       <span class="label-text-alt text-base-content/50">
-                        {gettext("Import available:")} {@from_email}
+                        {t("Import available:")} {@from_email}
                       </span>
                     </label>
                   <% end %>
@@ -247,7 +247,7 @@
 
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{gettext("DPO Phone")}</span>
+                    <span class="label-text">{t("DPO Phone")}</span>
                   </label>
                   <input
                     type="tel"
@@ -259,7 +259,7 @@
 
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{gettext("DPO Address")}</span>
+                    <span class="label-text">{t("DPO Address")}</span>
                   </label>
                   <div class="join w-full">
                     <input
@@ -273,7 +273,7 @@
                         type="button"
                         class="btn btn-outline join-item"
                         phx-click="import_dpo_address"
-                        title={gettext("Import from Company Address")}
+                        title={t("Import from Company Address")}
                       >
                         <.icon name="hero-arrow-down-tray" class="w-4 h-4" />
                       </button>
@@ -282,7 +282,7 @@
                   <%= if @company_address_formatted != "" do %>
                     <label class="label">
                       <span class="label-text-alt text-base-content/50">
-                        {gettext("Import available from Organization")}
+                        {t("Import available from Organization")}
                       </span>
                     </label>
                   <% end %>
@@ -291,7 +291,7 @@
 
               <div class="card-actions justify-end mt-4">
                 <button type="submit" class="btn btn-primary">
-                  {gettext("Save DPO Contact")}
+                  {t("Save DPO Contact")}
                 </button>
               </div>
             </form>
@@ -303,7 +303,7 @@
           <div class="alert alert-warning mb-4">
             <span class="hero-exclamation-triangle h-5 w-5 shrink-0"></span>
             <div>
-              <h3 class="font-bold">{gettext("Issues detected with legal pages")}</h3>
+              <h3 class="font-bold">{t("Issues detected with legal pages")}</h3>
               <ul class="list-disc list-inside mt-1">
                 <%= for issue <- @legal_diagnosis.issues do %>
                   <li>{issue}</li>
@@ -312,10 +312,10 @@
             </div>
             <button
               phx-click="reset_legal_pages"
-              data-confirm={gettext("This will delete all legal pages and their group. You will need to regenerate them. Continue?")}
+              data-confirm={t("This will delete all legal pages and their group. You will need to regenerate them. Continue?")}
               class="btn btn-warning btn-sm"
             >
-              {gettext("Reset Legal Pages")}
+              {t("Reset Legal Pages")}
             </button>
           </div>
         <% end %>
@@ -325,9 +325,9 @@
           <div class="card-body">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="card-title">{gettext("Legal Pages")}</h2>
+                <h2 class="card-title">{t("Legal Pages")}</h2>
                 <p class="text-sm text-base-content/60">
-                  {gettext("Generate legal pages based on selected frameworks.")}
+                  {t("Generate legal pages based on selected frameworks.")}
                 </p>
               </div>
               <div class="flex items-center gap-2">
@@ -354,7 +354,7 @@
                   <%= if @generating do %>
                     <span class="loading loading-spinner loading-sm"></span>
                   <% end %>
-                  {gettext("Generate All Required Pages")}
+                  {t("Generate All Required Pages")}
                 </button>
               </div>
             </div>
@@ -378,7 +378,7 @@
                   </path>
                 </svg>
                 <span>
-                  {gettext("Select compliance frameworks above to see required pages.")}
+                  {t("Select compliance frameworks above to see required pages.")}
                 </span>
               </div>
             <% else %>
@@ -386,10 +386,10 @@
                 <table class="table">
                   <thead>
                     <tr>
-                      <th>{gettext("Page")}</th>
-                      <th>{gettext("Required By")}</th>
-                      <th>{gettext("Status")}</th>
-                      <th class="text-right">{gettext("Actions")}</th>
+                      <th>{t("Page")}</th>
+                      <th>{t("Required By")}</th>
+                      <th>{t("Status")}</th>
+                      <th class="text-right">{t("Actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -434,7 +434,7 @@
                                 <% end %>
                               </div>
                             <% else %>
-                              <span class="badge badge-ghost">{gettext("Not generated")}</span>
+                              <span class="badge badge-ghost">{t("Not generated")}</span>
                             <% end %>
                           </td>
                           <td class="text-right">
@@ -444,7 +444,7 @@
                                   navigate={get_edit_url(page_type, @generated_pages)}
                                   class="btn btn-sm btn-ghost"
                                 >
-                                  {gettext("Edit")}
+                                  {t("Edit")}
                                 </.link>
                                 <%= if get_page_status(page_type, @generated_pages) != "published" do %>
                                   <button
@@ -452,7 +452,7 @@
                                     phx-value-page_slug={page_type}
                                     class="btn btn-sm btn-success"
                                   >
-                                    {gettext("Publish")}
+                                    {t("Publish")}
                                   </button>
                                 <% end %>
                               <% end %>
@@ -464,8 +464,8 @@
                                 disabled={@generating}
                               >
                                 {if page_generated?(page_type, @generated_pages),
-                                  do: gettext("Regenerate"),
-                                  else: gettext("Generate")}
+                                  do: t("Regenerate"),
+                                  else: t("Generate")}
                               </button>
                             </div>
                           </td>
@@ -491,9 +491,9 @@
                   />
                 </svg>
                 <div>
-                  <h3 class="font-bold">{gettext("Legal Review Required")}</h3>
+                  <h3 class="font-bold">{t("Legal Review Required")}</h3>
                   <div class="text-sm">
-                    {gettext(
+                    {t(
                       "Generated pages are drafts. Have them reviewed by a legal professional before publishing."
                     )}
                   </div>
@@ -510,18 +510,18 @@
               <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
               </svg>
-              {gettext("Cookie Consent Widget")}
+              {t("Cookie Consent Widget")}
             </h2>
             <p class="text-sm text-base-content/60 mb-4">
-              {gettext("Configure the cookie consent banner for your website visitors.")}
+              {t("Configure the cookie consent banner for your website visitors.")}
             </p>
 
             <%!-- Widget Enable Toggle --%>
             <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg mb-4">
               <div>
-                <span class="font-medium">{gettext("Enable Cookie Banner")}</span>
+                <span class="font-medium">{t("Enable Cookie Banner")}</span>
                 <p class="text-sm text-base-content/60">
-                  {gettext("Show cookie consent banner to visitors")}
+                  {t("Show cookie consent banner to visitors")}
                 </p>
               </div>
               <input
@@ -549,12 +549,12 @@
                   />
                 </svg>
                 <div>
-                  <h3 class="font-bold">{gettext("Legal pages not published")}</h3>
+                  <h3 class="font-bold">{t("Legal pages not published")}</h3>
                   <div class="text-sm">
-                    {gettext(
+                    {t(
                       "The following pages need to be published for the consent widget to work properly:"
                     )}
-                    <strong>{Enum.join(@unpublished_pages, ", ")}</strong>. {gettext(
+                    <strong>{Enum.join(@unpublished_pages, ", ")}</strong>. {t(
                       "Go to the Legal Pages section below to generate and publish them."
                     )}
                   </div>
@@ -568,7 +568,7 @@
                 <%!-- Consent Mode --%>
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-medium">{gettext("Consent Mode")}</span>
+                    <span class="label-text font-medium">{t("Consent Mode")}</span>
                   </label>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <%!-- Strict Mode --%>
@@ -581,9 +581,9 @@
                         class="radio radio-primary mt-1"
                       />
                       <div>
-                        <span class="font-medium">{gettext("Strict")}</span>
+                        <span class="font-medium">{t("Strict")}</span>
                         <p class="text-sm text-base-content/60 mt-1">
-                          {gettext(
+                          {t(
                             "Full GDPR compliance: floating icon, script blocking, re-consent on policy updates"
                           )}
                         </p>
@@ -599,9 +599,9 @@
                         class="radio radio-primary mt-1"
                       />
                       <div>
-                        <span class="font-medium">{gettext("Notice")}</span>
+                        <span class="font-medium">{t("Notice")}</span>
                         <p class="text-sm text-base-content/60 mt-1">
-                          {gettext(
+                          {t(
                             "Simple notice: banner shown once, no blocking, no floating icon"
                           )}
                         </p>
@@ -629,16 +629,16 @@
                     </svg>
                     <div>
                       <%= if @show_consent_icon do %>
-                        <span class="font-medium">{gettext("Floating icon will be shown")}</span>
+                        <span class="font-medium">{t("Floating icon will be shown")}</span>
                         <p class="text-sm">
-                          {gettext("Opt-in framework selected (GDPR, UK GDPR, LGPD, or PIPEDA)")}
+                          {t("Opt-in framework selected (GDPR, UK GDPR, LGPD, or PIPEDA)")}
                         </p>
                       <% else %>
                         <span class="font-medium">
-                          {gettext("Floating icon will NOT be shown")}
+                          {t("Floating icon will NOT be shown")}
                         </span>
                         <p class="text-sm">
-                          {gettext("Select an opt-in framework to enable the floating icon")}
+                          {t("Select an opt-in framework to enable the floating icon")}
                         </p>
                       <% end %>
                     </div>
@@ -647,14 +647,14 @@
                   <%!-- Icon Position (only for strict mode) --%>
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text">{gettext("Icon Position")}</span>
+                      <span class="label-text">{t("Icon Position")}</span>
                     </label>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                       <%= for {position, label} <- [
-                        {"top-left", gettext("Top Left")},
-                        {"top-right", gettext("Top Right")},
-                        {"bottom-left", gettext("Bottom Left")},
-                        {"bottom-right", gettext("Bottom Right")}
+                        {"top-left", t("Top Left")},
+                        {"top-right", t("Top Right")},
+                        {"bottom-left", t("Bottom Left")},
+                        {"bottom-right", t("Bottom Right")}
                       ] do %>
                         <label class={"flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-base-200 transition-colors #{if @icon_position == position, do: "border-primary bg-primary/5", else: "border-base-300"}"}>
                           <input
@@ -682,10 +682,10 @@
                       />
                       <div>
                         <span class="label-text font-medium">
-                          {gettext("Hide for authenticated users")}
+                          {t("Hide for authenticated users")}
                         </span>
                         <p class="text-sm text-base-content/60">
-                          {gettext(
+                          {t(
                             "Don't show consent banner to logged-in users (they agreed via Terms)"
                           )}
                         </p>
@@ -700,12 +700,12 @@
                 <%!-- Policy Version Info --%>
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{gettext("Policy Version")}</span>
+                    <span class="label-text">{t("Policy Version")}</span>
                   </label>
                   <div class="flex items-center gap-2">
                     <span class="badge badge-lg badge-outline">{@policy_version}</span>
                     <span class="text-sm text-base-content/60">
-                      {gettext("Auto-calculated from Cookie/Privacy Policy update dates")}
+                      {t("Auto-calculated from Cookie/Privacy Policy update dates")}
                     </span>
                   </div>
                 </div>
@@ -722,10 +722,10 @@
                     />
                     <div>
                       <span class="label-text font-medium">
-                        {gettext("Google Consent Mode v2")}
+                        {t("Google Consent Mode v2")}
                       </span>
                       <p class="text-sm text-base-content/60">
-                        {gettext("Integrate with Google Analytics/Ads consent signals")}
+                        {t("Integrate with Google Analytics/Ads consent signals")}
                       </p>
                     </div>
                   </label>
@@ -733,17 +733,17 @@
 
                 <div class="card-actions justify-end">
                   <button type="submit" class="btn btn-primary">
-                    {gettext("Save Settings")}
+                    {t("Save Settings")}
                   </button>
                 </div>
               </form>
 
               <%!-- Preview Section --%>
-              <div class="divider">{gettext("Preview")}</div>
+              <div class="divider">{t("Preview")}</div>
 
               <div class="mockup-browser border border-base-300 bg-base-100">
                 <div class="mockup-browser-toolbar">
-                  <div class="input">{gettext("your-website.com")}</div>
+                  <div class="input">{t("your-website.com")}</div>
                 </div>
                 <div class="bg-base-200 relative min-h-[320px]">
                   <%!-- Website placeholder content --%>
@@ -762,7 +762,7 @@
                           d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <p class="text-sm">{gettext("Your website content")}</p>
+                      <p class="text-sm">{t("Your website content")}</p>
                     </div>
                   </div>
 
@@ -778,7 +778,7 @@
                           _ -> "bottom-20 right-4"
                         end
                       ]}
-                      title={gettext("Cookie preferences")}
+                      title={t("Cookie preferences")}
                     >
                       <svg
                         class="w-6 h-6 text-primary-content"
@@ -806,25 +806,25 @@
                           </div>
                           <div>
                             <h3 class="font-semibold text-sm text-base-content">
-                              {gettext("We value your privacy")}
+                              {t("We value your privacy")}
                             </h3>
                             <p class="text-xs text-base-content/60 mt-0.5">
-                              {gettext("We use cookies to enhance your experience.")}
+                              {t("We use cookies to enhance your experience.")}
                               <a href="#" class="link link-primary text-xs ml-1">
-                                {gettext("Cookie Policy")}
+                                {t("Cookie Policy")}
                               </a>
                             </p>
                           </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                           <button class="btn btn-ghost btn-sm text-xs">
-                            {gettext("Customize")}
+                            {t("Customize")}
                           </button>
                           <button class="btn btn-outline btn-sm text-xs">
-                            {gettext("Reject")}
+                            {t("Reject")}
                           </button>
                           <button class="btn btn-primary btn-sm text-xs">
-                            {gettext("Accept All")}
+                            {t("Accept All")}
                           </button>
                         </div>
                       </div>

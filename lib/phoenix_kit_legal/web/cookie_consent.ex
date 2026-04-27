@@ -26,7 +26,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
   """
 
   use Phoenix.Component
-  use PhoenixKitLegal.Gettext
+  import PhoenixKitLegal.Translator, only: [t: 1]
 
   alias PhoenixKit.Modules.Legal
   alias PhoenixKit.Users.Auth.Scope
@@ -39,29 +39,28 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
     [
       %{
         id: "necessary",
-        name: gettext("Essential"),
+        name: t("Essential"),
         icon: "🔒",
-        description: gettext("Required for core functionality. These cannot be disabled."),
+        description: t("Required for core functionality. These cannot be disabled."),
         always_enabled: true
       },
       %{
         id: "analytics",
-        name: gettext("Analytics"),
+        name: t("Analytics"),
         icon: "📊",
-        description:
-          gettext("Help us understand how you use our site to improve your experience.")
+        description: t("Help us understand how you use our site to improve your experience.")
       },
       %{
         id: "marketing",
-        name: gettext("Marketing"),
+        name: t("Marketing"),
         icon: "📢",
-        description: gettext("Used for personalized advertising and measuring ad effectiveness.")
+        description: t("Used for personalized advertising and measuring ad effectiveness.")
       },
       %{
         id: "preferences",
-        name: gettext("Preferences"),
+        name: t("Preferences"),
         icon: "⚙️",
-        description: gettext("Remember your settings like language and region preferences.")
+        description: t("Remember your settings like language and region preferences.")
       }
     ]
   end
@@ -237,8 +236,8 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
             icon_position_class(@icon_position)
           ]}
-          aria-label={gettext("Cookie preferences")}
-          title={gettext("Cookie preferences")}
+          aria-label={t("Cookie preferences")}
+          title={t("Cookie preferences")}
         >
           <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
@@ -251,7 +250,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
         id="pk-consent-banner"
         class="pk-banner pk-glass fixed bottom-0 left-0 right-0 z-50 hidden"
         role="dialog"
-        aria-label={gettext("Cookie consent")}
+        aria-label={t("Cookie consent")}
         aria-hidden="true"
       >
         <div class="max-w-5xl mx-auto px-4 py-4 sm:px-6 sm:py-5">
@@ -265,18 +264,16 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
               </div>
               <div>
                 <h3 class="font-semibold text-base-content text-sm sm:text-base">
-                  {gettext("We value your privacy")}
+                  {t("We value your privacy")}
                 </h3>
                 <p class="text-base-content/80 text-xs sm:text-sm mt-0.5 leading-relaxed max-w-xl">
-                  {gettext(
-                    "We use cookies to enhance your browsing experience and analyze our traffic."
-                  )}
+                  {t("We use cookies to enhance your browsing experience and analyze our traffic.")}
                   {" "}
                   <a
                     href={@legal_index_url}
                     class="link link-primary text-xs sm:text-sm"
                   >
-                    {gettext("Legal")}
+                    {t("Legal")}
                   </a>
                 </p>
               </div>
@@ -289,21 +286,21 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                 onclick="window.PhoenixKitConsent?.openPreferences()"
                 class="btn btn-ghost btn-sm flex-1 sm:flex-none text-xs sm:text-sm"
               >
-                {gettext("Customize")}
+                {t("Customize")}
               </button>
               <button
                 type="button"
                 onclick="window.PhoenixKitConsent?.rejectAll()"
                 class="btn btn-outline btn-sm flex-1 sm:flex-none text-xs sm:text-sm"
               >
-                {gettext("Reject")}
+                {t("Reject")}
               </button>
               <button
                 type="button"
                 onclick="window.PhoenixKitConsent?.acceptAll()"
                 class="btn btn-primary btn-sm flex-1 sm:flex-none text-xs sm:text-sm"
               >
-                {gettext("Accept All")}
+                {t("Accept All")}
               </button>
             </div>
           </div>
@@ -316,7 +313,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
         class="fixed inset-0 z-[100] hidden"
         role="dialog"
         aria-modal="true"
-        aria-label={gettext("Cookie preferences")}
+        aria-label={t("Cookie preferences")}
       >
         <%!-- Backdrop --%>
         <div
@@ -338,10 +335,10 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                 </div>
                 <div>
                   <h2 class="font-semibold text-lg text-base-content">
-                    {gettext("Privacy Preferences")}
+                    {t("Privacy Preferences")}
                   </h2>
                   <p class="text-xs text-base-content/70">
-                    {gettext("Manage your cookie settings")}
+                    {t("Manage your cookie settings")}
                   </p>
                 </div>
               </div>
@@ -349,7 +346,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                 type="button"
                 onclick="window.PhoenixKitConsent?.closePreferences()"
                 class="btn btn-ghost btn-sm btn-circle"
-                aria-label={gettext("Close")}
+                aria-label={t("Close")}
               >
                 <svg
                   class="w-5 h-5"
@@ -382,7 +379,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                           </span>
                           <%= if Map.get(category, :always_enabled) do %>
                             <span class="badge badge-xs badge-ghost text-[10px]">
-                              {gettext("Required")}
+                              {t("Required")}
                             </span>
                           <% end %>
                         </div>
@@ -415,7 +412,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                     href={@legal_index_url}
                     class="link hover:text-primary transition-colors"
                   >
-                    {gettext("Legal")}
+                    {t("Legal")}
                   </a>
                 </div>
 
@@ -426,14 +423,14 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
                     onclick="window.PhoenixKitConsent?.rejectAll()"
                     class="btn btn-ghost btn-sm flex-1 sm:flex-none text-xs"
                   >
-                    {gettext("Reject All")}
+                    {t("Reject All")}
                   </button>
                   <button
                     type="button"
                     onclick="window.PhoenixKitConsent?.savePreferences()"
                     class="btn btn-primary btn-sm flex-1 sm:flex-none text-xs"
                   >
-                    {gettext("Save Preferences")}
+                    {t("Save Preferences")}
                   </button>
                 </div>
               </div>
