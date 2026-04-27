@@ -13,7 +13,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
   6. Generated pages list
   """
   use PhoenixKitWeb, :live_view
-  use Gettext, backend: PhoenixKitWeb.Gettext
+  use PhoenixKitLegal.Gettext
 
   @compile {:no_warn_undefined,
             [

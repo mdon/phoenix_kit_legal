@@ -26,7 +26,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
   """
 
   use Phoenix.Component
-  use Gettext, backend: PhoenixKitWeb.Gettext
+  use PhoenixKitLegal.Gettext
 
   alias PhoenixKit.Modules.Legal
   alias PhoenixKit.Users.Auth.Scope

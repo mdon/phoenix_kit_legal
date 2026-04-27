@@ -32,7 +32,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
 
   use PhoenixKit.Module
-  use Gettext, backend: PhoenixKitWeb.Gettext
+  use PhoenixKitLegal.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -1012,8 +1012,10 @@ defmodule PhoenixKit.Modules.Legal do
   end
 
   defp translate_title(title, language) do
-    Gettext.with_locale(PhoenixKitWeb.Gettext, language, fn ->
-      Gettext.gettext(PhoenixKitWeb.Gettext, title)
+    backend = PhoenixKitLegal.Gettext.backend()
+
+    Gettext.with_locale(backend, language, fn ->
+      Gettext.gettext(backend, title)
     end)
   end
 
