@@ -32,7 +32,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
 
   use PhoenixKit.Module
-  import PhoenixKitLegal.Translator, only: [t: 1]
+  use Gettext, backend: PhoenixKitWeb.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -608,38 +608,40 @@ defmodule PhoenixKit.Modules.Legal do
       legal_links: legal_links,
       legal_index_url: Routes.path("/legal", locale: :none),
       translations: %{
-        banner_title: t("We value your privacy"),
+        banner_title: gettext("We value your privacy"),
         banner_message:
-          t("We use cookies to enhance your browsing experience and analyze our traffic."),
-        banner_aria_label: t("Cookie consent"),
-        customize: t("Customize"),
-        reject: t("Reject"),
-        accept_all: t("Accept All"),
-        modal_title: t("Privacy Preferences"),
-        modal_subtitle: t("Manage your cookie settings"),
-        modal_close_aria: t("Close"),
-        reject_all: t("Reject All"),
-        save_preferences: t("Save Preferences"),
-        required: t("Required"),
-        privacy_policy_label: t("Privacy Policy"),
-        cookie_policy_label: t("Cookie Policy"),
-        icon_aria_label: t("Cookie preferences"),
+          gettext("We use cookies to enhance your browsing experience and analyze our traffic."),
+        banner_aria_label: gettext("Cookie consent"),
+        customize: gettext("Customize"),
+        reject: gettext("Reject"),
+        accept_all: gettext("Accept All"),
+        modal_title: gettext("Privacy Preferences"),
+        modal_subtitle: gettext("Manage your cookie settings"),
+        modal_close_aria: gettext("Close"),
+        reject_all: gettext("Reject All"),
+        save_preferences: gettext("Save Preferences"),
+        required: gettext("Required"),
+        privacy_policy_label: gettext("Privacy Policy"),
+        cookie_policy_label: gettext("Cookie Policy"),
+        icon_aria_label: gettext("Cookie preferences"),
         categories: %{
           necessary: %{
-            name: t("Essential"),
-            description: t("Required for core functionality. These cannot be disabled.")
+            name: gettext("Essential"),
+            description: gettext("Required for core functionality. These cannot be disabled.")
           },
           analytics: %{
-            name: t("Analytics"),
-            description: t("Help us understand how you use our site to improve your experience.")
+            name: gettext("Analytics"),
+            description:
+              gettext("Help us understand how you use our site to improve your experience.")
           },
           marketing: %{
-            name: t("Marketing"),
-            description: t("Used for personalized advertising and measuring ad effectiveness.")
+            name: gettext("Marketing"),
+            description:
+              gettext("Used for personalized advertising and measuring ad effectiveness.")
           },
           preferences: %{
-            name: t("Preferences"),
-            description: t("Remember your settings like language and region preferences.")
+            name: gettext("Preferences"),
+            description: gettext("Remember your settings like language and region preferences.")
           }
         }
       }
@@ -999,19 +1001,19 @@ defmodule PhoenixKit.Modules.Legal do
   @doc false
   def __extract_titles__ do
     [
-      t("Privacy Policy"),
-      t("Cookie Policy"),
-      t("Terms of Service"),
-      t("Do Not Sell My Personal Information"),
-      t("Data Retention Policy"),
-      t("CCPA Notice at Collection"),
-      t("Acceptable Use Policy")
+      gettext("Privacy Policy"),
+      gettext("Cookie Policy"),
+      gettext("Terms of Service"),
+      gettext("Do Not Sell My Personal Information"),
+      gettext("Data Retention Policy"),
+      gettext("CCPA Notice at Collection"),
+      gettext("Acceptable Use Policy")
     ]
   end
 
   defp translate_title(title, language) do
-    PhoenixKitLegal.Translator.with_locale(language, fn ->
-      PhoenixKitLegal.Translator.translate(title)
+    Gettext.with_locale(PhoenixKitWeb.Gettext, language, fn ->
+      Gettext.gettext(PhoenixKitWeb.Gettext, title)
     end)
   end
 

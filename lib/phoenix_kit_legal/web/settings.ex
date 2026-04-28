@@ -13,7 +13,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
   6. Generated pages list
   """
   use PhoenixKitWeb, :live_view
-  import PhoenixKitLegal.Translator, only: [t: 1, t: 2]
+  use Gettext, backend: PhoenixKitWeb.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -41,7 +41,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
     socket =
       socket
       |> assign(:project_title, Settings.get_project_title())
-      |> assign(:page_title, t("Legal Settings"))
+      |> assign(:page_title, gettext("Legal Settings"))
       |> assign(
         :current_path,
         Routes.path("/admin/settings/legal", locale: socket.assigns[:current_locale_base])
@@ -94,7 +94,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
         {:noreply, assign(socket, :selected_frameworks, updated)}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, t("Failed to save frameworks"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to save frameworks"))}
     end
   end
 
@@ -108,10 +108,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
         {:noreply,
          socket
          |> assign(:dpo_contact, dpo_contact)
-         |> put_flash(:info, t("Email imported from General Settings"))}
+         |> put_flash(:info, gettext("Email imported from General Settings"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, t("Failed to import email"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to import email"))}
     end
   end
 
@@ -125,10 +125,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
         {:noreply,
          socket
          |> assign(:dpo_contact, dpo_contact)
-         |> put_flash(:info, t("Address imported from Organization"))}
+         |> put_flash(:info, gettext("Address imported from Organization"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, t("Failed to import address"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to import address"))}
     end
   end
 
@@ -146,10 +146,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
         {:noreply,
          socket
          |> assign(:dpo_contact, dpo_contact)
-         |> put_flash(:info, t("DPO contact saved"))}
+         |> put_flash(:info, gettext("DPO contact saved"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, t("Failed to save DPO contact"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to save DPO contact"))}
     end
   end
 
@@ -168,7 +168,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
          |> assign(:generating, false)
          |> assign(:generated_pages, Legal.list_generated_pages())
          |> assign(:unpublished_pages, Legal.get_unpublished_required_pages())
-         |> put_flash(:info, t("Page generated successfully"))}
+         |> put_flash(:info, gettext("Page generated successfully"))}
 
       {:error, reason} ->
         {:noreply,
@@ -176,7 +176,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
          |> assign(:generating, false)
          |> put_flash(
            :error,
-           t("Failed to generate page: %{reason}", reason: inspect(reason))
+           gettext("Failed to generate page: %{reason}", reason: inspect(reason))
          )}
     end
   end
@@ -189,14 +189,14 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
          socket
          |> assign(:generated_pages, Legal.list_generated_pages())
          |> assign(:unpublished_pages, Legal.get_unpublished_required_pages())
-         |> put_flash(:info, t("Page published successfully"))}
+         |> put_flash(:info, gettext("Page published successfully"))}
 
       {:error, reason} ->
         {:noreply,
          put_flash(
            socket,
            :error,
-           t("Failed to publish page: %{reason}", reason: inspect(reason))
+           gettext("Failed to publish page: %{reason}", reason: inspect(reason))
          )}
     end
   end
@@ -218,7 +218,7 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
      |> assign(:generating, false)
      |> assign(:generated_pages, Legal.list_generated_pages())
      |> assign(:unpublished_pages, Legal.get_unpublished_required_pages())
-     |> put_flash(:info, t("Generated %{count} pages", count: success_count))}
+     |> put_flash(:info, gettext("Generated %{count} pages", count: success_count))}
   end
 
   @impl true
@@ -238,15 +238,15 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
          |> assign(:legal_diagnosis, Legal.diagnose_legal_pages())
          |> put_flash(
            :info,
-           t("Legal pages reset successfully. You can now regenerate them.")
+           gettext("Legal pages reset successfully. You can now regenerate them.")
          )}
 
       {:error, :no_issues_detected} ->
-        {:noreply, put_flash(socket, :warning, t("No issues detected — reset not needed"))}
+        {:noreply, put_flash(socket, :warning, gettext("No issues detected — reset not needed"))}
 
       {:error, reason} ->
         {:noreply,
-         put_flash(socket, :error, t("Reset failed: %{reason}", reason: inspect(reason)))}
+         put_flash(socket, :error, gettext("Reset failed: %{reason}", reason: inspect(reason)))}
     end
   end
 
@@ -263,10 +263,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
            socket
            |> assign(:consent_widget_enabled, false)
            |> assign(:show_consent_icon, false)
-           |> put_flash(:info, t("Cookie consent widget disabled"))}
+           |> put_flash(:info, gettext("Cookie consent widget disabled"))}
 
         {:error, _} ->
-          {:noreply, put_flash(socket, :error, t("Failed to update setting"))}
+          {:noreply, put_flash(socket, :error, gettext("Failed to update setting"))}
       end
     else
       case Legal.enable_consent_widget() do
@@ -277,10 +277,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
            socket
            |> assign(:consent_widget_enabled, true)
            |> assign(:show_consent_icon, show_icon)
-           |> put_flash(:info, t("Cookie consent widget enabled"))}
+           |> put_flash(:info, gettext("Cookie consent widget enabled"))}
 
         {:error, _} ->
-          {:noreply, put_flash(socket, :error, t("Failed to update setting"))}
+          {:noreply, put_flash(socket, :error, gettext("Failed to update setting"))}
       end
     end
   end
@@ -304,10 +304,10 @@ defmodule PhoenixKitWeb.Live.Modules.Legal.Settings do
        |> assign(:icon_position, params["icon_position"] || "bottom-right")
        |> assign(:google_consent_mode, params["google_consent_mode"] == "true")
        |> assign(:show_consent_icon, show_icon)
-       |> put_flash(:info, t("Consent widget settings saved"))}
+       |> put_flash(:info, gettext("Consent widget settings saved"))}
     else
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, t("Failed to save settings"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to save settings"))}
     end
   end
 
