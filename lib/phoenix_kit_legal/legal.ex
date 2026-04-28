@@ -769,8 +769,17 @@ defmodule PhoenixKit.Modules.Legal do
     ]
   end
 
+  # Compile-time absolute path to this library's source root. Returned alongside
+  # the OTP-app atom from `css_sources/0` so parent apps using
+  # `{:phoenix_kit_legal, path: "..."}` (or any non-standard layout) get a
+  # @source directive that resolves regardless of how the dep is declared.
+  # For Hex installs the absolute path points into `deps/phoenix_kit_legal`,
+  # producing the same effective scan as the atom entry — duplicates are
+  # de-duplicated by the compiler via Enum.uniq/1.
+  @source_root Path.expand(Path.join(__DIR__, "../.."))
+
   @impl PhoenixKit.Module
-  def css_sources, do: [:phoenix_kit_legal]
+  def css_sources, do: [:phoenix_kit_legal, @source_root]
 
   @impl PhoenixKit.Module
   def migration_module, do: PhoenixKit.Modules.Legal.Migrations.ConsentLogs
