@@ -90,8 +90,8 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
     case last_plug_static_position(content) do
       {:ok, pos} ->
         patched =
-          String.slice(content, 0, pos) <>
-            @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+          binary_part(content, 0, pos) <>
+            @static_plug_snippet <> binary_part(content, pos, byte_size(content) - pos)
 
         {:ok, patched}
 
@@ -100,8 +100,8 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
         case find_router_plug_position(content) do
           {:ok, pos} ->
             patched =
-              String.slice(content, 0, pos) <>
-                @static_plug_snippet <> String.slice(content, pos, byte_size(content) - pos)
+              binary_part(content, 0, pos) <>
+                @static_plug_snippet <> binary_part(content, pos, byte_size(content) - pos)
 
             {:ok, patched}
 
@@ -325,7 +325,17 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
 
          mix phoenix_kit.update
 
-    2. Add the CookieConsent component to your root layout:
+    2. Merge PhoenixKitHooks into your LiveSocket hooks map in assets/js/app.js:
+
+         let liveSocket = new LiveSocket("/live", Socket, {
+           hooks: { ...Hooks, ...window.PhoenixKitHooks },
+           // ...
+         })
+
+       This wires the CookieConsent LiveView hook so the widget initializes on
+       mount instead of falling back to DOMContentLoaded.
+
+    3. Add the CookieConsent component to your root layout:
 
          <PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
            frameworks={["gdpr"]}
@@ -337,7 +347,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
        without it the "Hide for authenticated users" setting in Admin → Legal
        has no effect, since the widget has no way to know who the user is.
 
-    3. Enable the Legal module in Admin → Modules.
+    4. Enable the Legal module in Admin → Modules.
        Routes and admin settings are wired automatically via phoenix_kit_routes().
 
     ──────────────────────────────────────────────────────────────────────────────

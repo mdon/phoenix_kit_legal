@@ -101,6 +101,40 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       assert our_pos < router_pos
     end
 
+    test "handles UTF-8 content correctly (byte_size vs grapheme mismatch)", %{dir: dir} do
+      path = Path.join(dir, "endpoint.ex")
+
+      # Multi-byte UTF-8 chars (Ukrainian comment) before the plug. If slicing
+      # is grapheme-based but offsets are byte-based, the patched output is
+      # corrupted.
+      File.write!(path, """
+      defmodule MyApp.Endpoint do
+        use Phoenix.Endpoint, otp_app: :my_app
+
+        # Налаштування статичних файлів — UTF-8 коментар
+        plug Plug.Static,
+          at: "/",
+          from: :my_app,
+          gzip: false
+
+        plug :router
+      end
+      """)
+
+      Install.insert_plug_static(path)
+
+      content = File.read!(path)
+      assert String.contains?(content, "phoenix_kit_legal")
+      # File must remain valid UTF-8 (would fail/garble if byte/grapheme mixed)
+      assert String.valid?(content)
+      # The Ukrainian comment must survive untouched
+      assert String.contains?(content, "Налаштування статичних файлів — UTF-8 коментар")
+      # The static plug snippet must appear after the existing one
+      our_pos = :binary.match(content, "phoenix_kit_legal") |> elem(0)
+      existing_pos = :binary.match(content, "at: \"/\",") |> elem(0)
+      assert our_pos > existing_pos
+    end
+
     test "handles multi-endpoint — each file is patched independently", %{dir: dir} do
       path1 = Path.join(dir, "endpoint_a.ex")
       path2 = Path.join(dir, "endpoint_b.ex")

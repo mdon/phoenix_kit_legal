@@ -70,6 +70,27 @@
     }
   }
 
+  // Escape values destined for an HTML attribute (e.g. href="..."). Prevents
+  // user-controlled URLs (admin-defined post slugs) from breaking out of the
+  // attribute or injecting new tags.
+  function escapeAttr(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Escape values destined for HTML text content. Defense-in-depth for
+  // gettext-derived translation strings concatenated into innerHTML.
+  function escapeText(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
   function t(key, fallback) {
     var translations = PhoenixKitConsent.config.translations || {};
     return translations[key] || fallback;
@@ -316,14 +337,14 @@
         '<button id="pk-consent-icon" type="button" onclick="window.PhoenixKitConsent.openPreferences()" ' +
         'class="pk-floating-icon pk-glass" ' +
         'style="position:fixed;z-index:50;width:3rem;height:3rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--pk-primary);' + iconStyle + '" ' +
-        'aria-label="' + t("icon_aria_label", "Cookie preferences") + '" title="' + t("icon_aria_label", "Cookie preferences") + '">' +
+        'aria-label="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '" title="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '">' +
           '<svg style="width:1.5rem;height:1.5rem;color:var(--pk-primary-content)" viewBox="0 0 24 24" fill="currentColor">' +
             '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>' +
           '</svg>' +
         '</button>' : '') +
 
       // Banner - using theme colors
-      '<div id="pk-consent-banner" class="pk-banner pk-glass" style="position:fixed;bottom:0;left:0;right:0;z-index:50;display:none;border-radius:0" role="dialog" aria-label="' + t("banner_aria_label", "Cookie consent") + '" aria-hidden="true">' +
+      '<div id="pk-consent-banner" class="pk-banner pk-glass" style="position:fixed;bottom:0;left:0;right:0;z-index:50;display:none;border-radius:0" role="dialog" aria-label="' + escapeAttr(t("banner_aria_label", "Cookie consent")) + '" aria-hidden="true">' +
         '<div style="max-width:64rem;margin:0 auto;padding:1rem 1.5rem">' +
           '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:1rem">' +
             '<div style="flex:1;display:flex;align-items:flex-start;gap:0.75rem;min-width:200px">' +
@@ -333,24 +354,24 @@
                 '</svg>' +
               '</div>' +
               '<div>' +
-                '<h3 style="font-weight:600;font-size:0.875rem;margin:0;color:var(--pk-text)">' + t("banner_title", "We value your privacy") + '</h3>' +
+                '<h3 style="font-weight:600;font-size:0.875rem;margin:0;color:var(--pk-text)">' + escapeText(t("banner_title", "We value your privacy")) + '</h3>' +
                 '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' +
-                  t("banner_message", "We use cookies to enhance your browsing experience and analyze our traffic.") + ' ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">' + t("cookie_policy_label", "Cookie Policy") + '</a>' +
+                  escapeText(t("banner_message", "We use cookies to enhance your browsing experience and analyze our traffic.")) + ' ' +
+                  '<a href="' + escapeAttr(config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">' + escapeText(t("cookie_policy_label", "Cookie Policy")) + '</a>' +
                 '</p>' +
               '</div>' +
             '</div>' +
             '<div style="display:flex;gap:0.5rem;flex-wrap:wrap">' +
-              '<button type="button" onclick="window.PhoenixKitConsent.openPreferences()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + t("customize", "Customize") + '</button>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-outline btn-sm" style="font-size:0.75rem">' + t("reject", "Reject") + '</button>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.acceptAll()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + t("accept_all", "Accept All") + '</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.openPreferences()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + escapeText(t("customize", "Customize")) + '</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-outline btn-sm" style="font-size:0.75rem">' + escapeText(t("reject", "Reject")) + '</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.acceptAll()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + escapeText(t("accept_all", "Accept All")) + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
 
       // Modal - using theme colors
-      '<div id="pk-consent-modal" style="position:fixed;inset:0;z-index:100;display:none" role="dialog" aria-modal="true" aria-label="' + t("icon_aria_label", "Cookie preferences") + '">' +
+      '<div id="pk-consent-modal" style="position:fixed;inset:0;z-index:100;display:none" role="dialog" aria-modal="true" aria-label="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '">' +
         '<div class="pk-modal-backdrop" onclick="window.PhoenixKitConsent.closePreferences()" style="position:absolute;inset:0;background:oklch(var(--bc)/0.4);backdrop-filter:blur(4px)"></div>' +
         '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;pointer-events:none">' +
           '<div class="pk-modal-content pk-glass" style="width:100%;max-width:28rem;max-height:85vh;overflow:hidden;border-radius:1rem;pointer-events:auto">' +
@@ -363,11 +384,11 @@
                   '</svg>' +
                 '</div>' +
                 '<div>' +
-                  '<h2 style="font-weight:600;font-size:1.125rem;margin:0;color:var(--pk-text)">' + t("modal_title", "Privacy Preferences") + '</h2>' +
-                  '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0">' + t("modal_subtitle", "Manage your cookie settings") + '</p>' +
+                  '<h2 style="font-weight:600;font-size:1.125rem;margin:0;color:var(--pk-text)">' + escapeText(t("modal_title", "Privacy Preferences")) + '</h2>' +
+                  '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0">' + escapeText(t("modal_subtitle", "Manage your cookie settings")) + '</p>' +
                 '</div>' +
               '</div>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.closePreferences()" class="btn btn-ghost btn-sm btn-circle" aria-label="' + t("modal_close_aria", "Close") + '">' +
+              '<button type="button" onclick="window.PhoenixKitConsent.closePreferences()" class="btn btn-ghost btn-sm btn-circle" aria-label="' + escapeAttr(t("modal_close_aria", "Close")) + '">' +
                 '<svg style="width:1.25rem;height:1.25rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
                   '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>' +
                 '</svg>' +
@@ -384,13 +405,13 @@
             '<div style="padding:1rem 1.5rem;border-top:1px solid var(--pk-border);background:var(--pk-bg-alt)">' +
               '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem">' +
                 '<div style="font-size:0.75rem;color:var(--pk-text-muted)">' +
-                  '<a href="' + (config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + t("privacy_policy_label", "Privacy Policy") + '</a>' +
+                  '<a href="' + escapeAttr(config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + escapeText(t("privacy_policy_label", "Privacy Policy")) + '</a>' +
                   ' • ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + t("cookie_policy_label", "Cookie Policy") + '</a>' +
+                  '<a href="' + escapeAttr(config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + escapeText(t("cookie_policy_label", "Cookie Policy")) + '</a>' +
                 '</div>' +
                 '<div style="margin-left:auto;display:flex;gap:0.5rem">' +
-                  '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + t("reject_all", "Reject All") + '</button>' +
-                  '<button type="button" onclick="window.PhoenixKitConsent.savePreferences()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + t("save_preferences", "Save Preferences") + '</button>' +
+                  '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + escapeText(t("reject_all", "Reject All")) + '</button>' +
+                  '<button type="button" onclick="window.PhoenixKitConsent.savePreferences()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + escapeText(t("save_preferences", "Save Preferences")) + '</button>' +
                 '</div>' +
               '</div>' +
             '</div>' +
@@ -402,22 +423,22 @@
 
   function createCategoryHTML(id, icon, name, description, required) {
     var checkedAttr = required ? ' checked disabled' : '';
-    var requiredBadge = required ? '<span class="badge badge-ghost badge-xs" style="margin-left:0.5rem">' + t("required", "Required") + '</span>' : '';
+    var requiredBadge = required ? '<span class="badge badge-ghost badge-xs" style="margin-left:0.5rem">' + escapeText(t("required", "Required")) + '</span>' : '';
 
     return '<div class="pk-category-card" style="border-radius:0.75rem;padding:1rem;margin-bottom:0.75rem">' +
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem">' +
         '<div style="display:flex;align-items:flex-start;gap:0.75rem;flex:1">' +
-          '<span style="font-size:1.25rem">' + icon + '</span>' +
+          '<span style="font-size:1.25rem">' + escapeText(icon) + '</span>' +
           '<div>' +
             '<div style="display:flex;align-items:center">' +
-              '<span style="font-weight:500;font-size:0.875rem;color:var(--pk-text)">' + name + '</span>' +
+              '<span style="font-weight:500;font-size:0.875rem;color:var(--pk-text)">' + escapeText(name) + '</span>' +
               requiredBadge +
             '</div>' +
-            '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' + description + '</p>' +
+            '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' + escapeText(description) + '</p>' +
           '</div>' +
         '</div>' +
         '<label style="position:relative;display:inline-flex;cursor:pointer;flex-shrink:0">' +
-          '<input type="checkbox" id="pk-consent-' + id + '" class="toggle toggle-primary toggle-sm" data-category="' + id + '"' + checkedAttr + '>' +
+          '<input type="checkbox" id="pk-consent-' + escapeAttr(id) + '" class="toggle toggle-primary toggle-sm" data-category="' + escapeAttr(id) + '"' + checkedAttr + '>' +
         '</label>' +
       '</div>' +
     '</div>';

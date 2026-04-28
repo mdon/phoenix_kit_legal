@@ -54,7 +54,7 @@ This task is **idempotent** — safe to run multiple times. It performs three st
 |------|--------------|
 | `lib/**/endpoint.ex` | Adds `Plug.Static` at `/phoenix_kit_legal` to serve the consent JS |
 | `assets/css/app.css` | Adds `@source "../../deps/phoenix_kit_legal"` for Tailwind class scanning |
-| `assets/vendor/` | Copies `phoenix_kit_consent.js` so esbuild can import it |
+| `assets/js/app.js` | Adds `import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"` |
 
 Then it prints the remaining manual steps (migration, JS hook, router scope, component).
 
