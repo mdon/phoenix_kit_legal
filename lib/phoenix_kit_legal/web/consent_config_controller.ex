@@ -3,77 +3,33 @@ defmodule PhoenixKitWeb.Controllers.ConsentConfigController do
   API controller for cookie consent widget configuration.
 
   Returns the consent widget configuration as JSON for client-side initialization.
-  This allows the JavaScript widget to automatically inject itself into any page
-  without requiring changes to the parent application's layout.
+
+  This endpoint is intentionally auth-agnostic by design: it performs no
+  per-request user check. Whether to show the widget to an authenticated
+  user is decided server-side by the `cookie_consent` component at render
+  time (via its `phoenix_kit_current_scope` attribute).
+
+  The response embeds locale-dependent `translations`, so it is marked
+  `cache-control: private` to allow per-user browser caching while
+  preventing shared/CDN caches from serving one locale's translations
+  to a user expecting another locale.
+
+  Used by the manual `window.PhoenixKitConsent.init()` entry point for
+  third-party / non-LiveView injection contexts. Because this endpoint does
+  not gate on auth, manual callers of `init()` are responsible for
+  implementing their own auth checks before invoking it on pages where
+  authenticated users should not see the widget.
   """
   use PhoenixKitWeb, :controller
 
   alias PhoenixKit.Modules.Legal
-  alias PhoenixKit.Users.Auth.Scope
-
-  # Fetch current user for authentication check
-  plug PhoenixKitWeb.Users.Auth, :fetch_phoenix_kit_current_user
 
   @doc """
   Returns the consent widget configuration as JSON.
-
-  Response format:
-  ```json
-  {
-    "enabled": true,
-    "consent_mode": "strict",
-    "frameworks": ["gdpr"],
-    "icon_position": "bottom-right",
-    "policy_version": "1.0",
-    "cookie_policy_url": "/phoenix_kit/legal/cookie-policy",
-    "privacy_policy_url": "/phoenix_kit/legal/privacy-policy",
-    "google_consent_mode": false,
-    "hide_for_authenticated": false,
-    "is_authenticated": false,
-    "show_icon": true
-  }
-  ```
   """
   def config(conn, _params) do
-    config = Legal.get_consent_widget_config()
-
-    # Check if user is authenticated
-    is_authenticated = user_authenticated?(conn)
-
-    # Determine if widget should be shown
-    should_show =
-      config.enabled and
-        not (config.hide_for_authenticated and is_authenticated)
-
-    response =
-      config
-      |> Map.put(:is_authenticated, is_authenticated)
-      |> Map.put(:should_show, should_show)
-
-    # Use private cache if hide_for_authenticated is enabled
-    cache_header =
-      if config.hide_for_authenticated do
-        "private, max-age=0"
-      else
-        "public, max-age=60"
-      end
-
     conn
-    |> put_resp_header("cache-control", cache_header)
-    |> json(response)
-  end
-
-  defp user_authenticated?(conn) do
-    # Check for PhoenixKit user in assigns
-    case conn.assigns do
-      %{phoenix_kit_current_user: user} when not is_nil(user) ->
-        true
-
-      %{phoenix_kit_current_scope: scope} when not is_nil(scope) ->
-        Scope.authenticated?(scope)
-
-      _ ->
-        false
-    end
+    |> put_resp_header("cache-control", "private, max-age=60")
+    |> json(Legal.get_consent_widget_config())
   end
 end

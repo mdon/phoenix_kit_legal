@@ -40,6 +40,70 @@ mix deps.get
 > {:phoenix_kit_legal, github: "BeamLabEU/phoenix_kit_legal"}
 > ```
 
+### Automated setup
+
+Run the install task to patch your app automatically:
+
+```bash
+mix phoenix_kit_legal.install
+```
+
+This task is **idempotent** — safe to run multiple times. It performs three steps:
+
+| Step | What it does |
+|------|--------------|
+| `lib/**/endpoint.ex` | Adds `Plug.Static` at `/phoenix_kit_legal` to serve the consent JS |
+| `assets/css/app.css` | Adds `@source "../../deps/phoenix_kit_legal"` for Tailwind class scanning |
+| `assets/js/app.js` | Adds `import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"` |
+
+Then it prints the remaining manual steps (migration, JS hook, router scope, component).
+
+#### Manual steps after install
+
+**1. Copy and run the migration:**
+
+```bash
+cp deps/phoenix_kit_legal/priv/migrations/add_phoenix_kit_consent_logs.exs \
+   priv/repo/migrations/$(date +%Y%m%d%H%M%S)_add_phoenix_kit_consent_logs.exs
+# Edit: rename MyApp.Repo to your repo module name
+mix ecto.migrate
+```
+
+**2. Wire up the JS hook in `assets/js/app.js`:**
+
+```js
+// Side-effect import — IIFE registers window.PhoenixKitHooks.CookieConsent
+import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"
+
+let liveSocket = new LiveSocket("/live", Socket, {
+  hooks: { ...Hooks, ...window.PhoenixKitHooks },
+  params: {_csrf_token: csrfToken}
+})
+```
+
+**3. Add the router scope in `router.ex`:**
+
+```elixir
+scope "/admin/settings", PhoenixKitWeb.Live.Modules.Legal do
+  live "/legal", Settings, :index
+end
+```
+
+**4. Add the CookieConsent component to your root layout:**
+
+```heex
+<PhoenixKit.Modules.Legal.CookieConsent.cookie_consent
+  frameworks={["gdpr"]}
+  phoenix_kit_current_scope={@phoenix_kit_current_scope}
+/>
+```
+
+Pass `phoenix_kit_current_scope={@phoenix_kit_current_scope}` so the component
+can decide server-side whether to render for authenticated users. The assign
+is already available in root layouts wired via `PhoenixKitWeb.Integration`.
+Omitting it is safe — the widget renders for everyone (same as an anonymous
+visitor), but the "Hide for authenticated users" setting will have no effect.
+
 PhoenixKit auto-discovers the module at startup — no additional configuration needed.
 
 ## Quick Start
@@ -220,13 +284,13 @@ Requires either `user_uuid` or `session_id` (at least one must be present).
 | `legal_cookie_banner_position` | `"bottom-right"` | Widget icon position |
 | `legal_policy_version` | `"1.0"` | Manual policy version string |
 | `legal_google_consent_mode` | `false` | Enable Google Consent Mode v2 |
-| `legal_hide_for_authenticated` | `false` | Hide widget for logged-in users |
+| `legal_hide_for_authenticated` | `true` | Hide widget for logged-in users |
 
 ## API Endpoint
 
 **`GET /phoenix_kit/api/consent-config`** — Returns widget configuration as JSON.
 
-Used by the client-side consent manager to initialize the widget. Cached publicly (60s) unless `hide_for_authenticated` is enabled.
+Used by the client-side consent manager to initialize the widget. Cached publicly for 60 seconds. Auth-gating is handled server-side by the component, not this endpoint.
 
 ## Development
 

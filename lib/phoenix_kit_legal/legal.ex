@@ -32,6 +32,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
 
   use PhoenixKit.Module
+  use Gettext, backend: PhoenixKitWeb.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -537,12 +538,17 @@ defmodule PhoenixKit.Modules.Legal do
   def update_consent_mode(_), do: {:error, :invalid_mode}
 
   @doc """
-  Check if consent widget should be hidden for authenticated users.
-  Only applies in "notice" mode.
+  Returns true if the cookie consent widget should be hidden for authenticated users.
+
+  When true, the `cookie_consent/1` component renders nothing for authenticated users
+  (both strict and notice modes). Requires `phoenix_kit_current_scope` to be passed
+  to the component — without it, this setting has no effect.
+
+  Default: `true`.
   """
   @spec hide_for_authenticated?() :: boolean()
   def hide_for_authenticated? do
-    Settings.get_boolean_setting("legal_hide_for_authenticated", false)
+    Settings.get_boolean_setting("legal_hide_for_authenticated", true)
   end
 
   @doc """
@@ -567,7 +573,6 @@ defmodule PhoenixKit.Modules.Legal do
   - icon_position: string
   - policy_version: string
   - google_consent_mode: boolean
-  - hide_for_authenticated: boolean
   - frameworks: list of framework IDs
   - cookie_policy_url: string (backward compat, derived from published pages)
   - privacy_policy_url: string (backward compat, derived from published pages)
@@ -581,20 +586,19 @@ defmodule PhoenixKit.Modules.Legal do
     cookie_policy_url =
       case Enum.find(legal_links, &String.ends_with?(&1.url, "/cookie-policy")) do
         %{url: url} -> url
-        nil -> Routes.path("/legal/cookie-policy")
+        nil -> Routes.path("/legal/cookie-policy", locale: :none)
       end
 
     privacy_policy_url =
       case Enum.find(legal_links, &String.ends_with?(&1.url, "/privacy-policy")) do
         %{url: url} -> url
-        nil -> Routes.path("/legal/privacy-policy")
+        nil -> Routes.path("/legal/privacy-policy", locale: :none)
       end
 
     %{
       enabled: consent_widget_enabled?(),
       consent_mode: get_consent_mode(),
       show_icon: should_show_consent_icon?(),
-      hide_for_authenticated: hide_for_authenticated?(),
       icon_position: get_icon_position(),
       policy_version: get_auto_policy_version(),
       google_consent_mode: google_consent_mode_enabled?(),
@@ -602,7 +606,45 @@ defmodule PhoenixKit.Modules.Legal do
       cookie_policy_url: cookie_policy_url,
       privacy_policy_url: privacy_policy_url,
       legal_links: legal_links,
-      legal_index_url: Routes.path("/legal")
+      legal_index_url: Routes.path("/legal", locale: :none),
+      translations: %{
+        banner_title: gettext("We value your privacy"),
+        banner_message:
+          gettext("We use cookies to enhance your browsing experience and analyze our traffic."),
+        banner_aria_label: gettext("Cookie consent"),
+        customize: gettext("Customize"),
+        reject: gettext("Reject"),
+        accept_all: gettext("Accept All"),
+        modal_title: gettext("Privacy Preferences"),
+        modal_subtitle: gettext("Manage your cookie settings"),
+        modal_close_aria: gettext("Close"),
+        reject_all: gettext("Reject All"),
+        save_preferences: gettext("Save Preferences"),
+        required: gettext("Required"),
+        privacy_policy_label: gettext("Privacy Policy"),
+        cookie_policy_label: gettext("Cookie Policy"),
+        icon_aria_label: gettext("Cookie preferences"),
+        categories: %{
+          necessary: %{
+            name: gettext("Essential"),
+            description: gettext("Required for core functionality. These cannot be disabled.")
+          },
+          analytics: %{
+            name: gettext("Analytics"),
+            description:
+              gettext("Help us understand how you use our site to improve your experience.")
+          },
+          marketing: %{
+            name: gettext("Marketing"),
+            description:
+              gettext("Used for personalized advertising and measuring ad effectiveness.")
+          },
+          preferences: %{
+            name: gettext("Preferences"),
+            description: gettext("Remember your settings like language and region preferences.")
+          }
+        }
+      }
     }
   end
 
@@ -616,7 +658,7 @@ defmodule PhoenixKit.Modules.Legal do
   def get_published_legal_links do
     list_generated_pages()
     |> Enum.filter(&(&1.status == "published"))
-    |> Enum.map(&%{title: &1.title, url: Routes.path("/legal/#{&1.slug}")})
+    |> Enum.map(&%{title: &1.title, url: Routes.path("/legal/#{&1.slug}", locale: :none)})
   end
 
   @doc """
@@ -727,8 +769,20 @@ defmodule PhoenixKit.Modules.Legal do
     ]
   end
 
+  # Compile-time absolute path to this library's source root. Returned alongside
+  # the OTP-app atom from `css_sources/0` so parent apps using
+  # `{:phoenix_kit_legal, path: "..."}` (or any non-standard layout) get a
+  # @source directive that resolves regardless of how the dep is declared.
+  # For Hex installs the absolute path points into `deps/phoenix_kit_legal`,
+  # producing the same effective scan as the atom entry — duplicates are
+  # de-duplicated by the compiler via Enum.uniq/1.
+  @source_root Path.expand(Path.join(__DIR__, "../.."))
+
   @impl PhoenixKit.Module
-  def css_sources, do: [:phoenix_kit_legal]
+  def css_sources, do: [:phoenix_kit_legal, @source_root]
+
+  @impl PhoenixKit.Module
+  def migration_module, do: PhoenixKit.Modules.Legal.Migrations.ConsentLogs
 
   # ===================================
   # PAGE GENERATION
@@ -950,6 +1004,28 @@ defmodule PhoenixKit.Modules.Legal do
   # PRIVATE HELPERS
   # ===================================
 
+  # Dummy function to mark page titles for gettext extraction.
+  # Never called — exists only so `mix gettext.extract` sees these strings.
+  # Runtime translation happens via `translate_title/2` below.
+  @doc false
+  def __extract_titles__ do
+    [
+      gettext("Privacy Policy"),
+      gettext("Cookie Policy"),
+      gettext("Terms of Service"),
+      gettext("Do Not Sell My Personal Information"),
+      gettext("Data Retention Policy"),
+      gettext("CCPA Notice at Collection"),
+      gettext("Acceptable Use Policy")
+    ]
+  end
+
+  defp translate_title(title, language) do
+    Gettext.with_locale(PhoenixKitWeb.Gettext, language, fn ->
+      Gettext.gettext(PhoenixKitWeb.Gettext, title)
+    end)
+  end
+
   defp publishing_enabled? do
     publishing_module().enabled?()
   rescue
@@ -1047,7 +1123,7 @@ defmodule PhoenixKit.Modules.Legal do
   end
 
   defp create_or_update_legal_post(page_config, content, language, scope) do
-    full_content = "# #{page_config.title}\n\n#{content}"
+    full_content = "# #{translate_title(page_config.title, language)}\n\n#{content}"
 
     case publishing_module().read_post(@legal_blog_slug, page_config.slug) do
       {:ok, existing_post} ->
@@ -1135,7 +1211,7 @@ defmodule PhoenixKit.Modules.Legal do
     publishing_module().update_post(
       @legal_blog_slug,
       lang_post,
-      %{"content" => full_content, "title" => page_config.title},
+      %{"content" => full_content, "title" => translate_title(page_config.title, language)},
       scope: scope
     )
   end
@@ -1145,7 +1221,7 @@ defmodule PhoenixKit.Modules.Legal do
   defp create_new_legal_post(page_config, full_content, language, scope) do
     with {:ok, post} <-
            publishing_module().create_post(@legal_blog_slug, %{
-             title: page_config.title,
+             title: translate_title(page_config.title, language),
              slug: page_config.slug,
              scope: scope
            }) do
@@ -1169,7 +1245,11 @@ defmodule PhoenixKit.Modules.Legal do
         publishing_module().update_post(
           @legal_blog_slug,
           lang_post,
-          %{"content" => full_content, "title" => page_config.title, "status" => "draft"},
+          %{
+            "content" => full_content,
+            "title" => translate_title(page_config.title, language),
+            "status" => "draft"
+          },
           scope: scope
         )
       end

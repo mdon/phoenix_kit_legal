@@ -70,6 +70,37 @@
     }
   }
 
+  // Escape values destined for an HTML attribute (e.g. href="..."). Prevents
+  // user-controlled URLs (admin-defined post slugs) from breaking out of the
+  // attribute or injecting new tags.
+  function escapeAttr(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Escape values destined for HTML text content. Defense-in-depth for
+  // gettext-derived translation strings concatenated into innerHTML.
+  function escapeText(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function t(key, fallback) {
+    var translations = PhoenixKitConsent.config.translations || {};
+    return translations[key] || fallback;
+  }
+
+  function tc(categoryId, field, fallback) {
+    var cats = (PhoenixKitConsent.config.translations || {}).categories || {};
+    return (cats[categoryId] || {})[field] || fallback;
+  }
+
   function isOptInMode() {
     var frameworks = PhoenixKitConsent.config.frameworks;
     for (var i = 0; i < OPT_IN_FRAMEWORKS.length; i++) {
@@ -196,26 +227,6 @@
     log("Google Consent Mode updated", consent);
   }
 
-  function resetGoogleConsentMode() {
-    // Reset Google Consent Mode to granted state when widget is disabled
-    // This ensures no blocking occurs when the consent widget is turned off
-    if (typeof window.dataLayer === "undefined") return;
-
-    function gtag() { window.dataLayer.push(arguments); }
-
-    gtag("consent", "update", {
-      "ad_storage": "granted",
-      "analytics_storage": "granted",
-      "ad_user_data": "granted",
-      "ad_personalization": "granted",
-      "personalization_storage": "granted",
-      "functionality_storage": "granted",
-      "security_storage": "granted"
-    });
-
-    log("Google Consent Mode reset to granted (widget disabled)");
-  }
-
   // =====================================================
   // SCRIPT BLOCKING
   // =====================================================
@@ -326,14 +337,14 @@
         '<button id="pk-consent-icon" type="button" onclick="window.PhoenixKitConsent.openPreferences()" ' +
         'class="pk-floating-icon pk-glass" ' +
         'style="position:fixed;z-index:50;width:3rem;height:3rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--pk-primary);' + iconStyle + '" ' +
-        'aria-label="Cookie preferences" title="Cookie preferences">' +
+        'aria-label="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '" title="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '">' +
           '<svg style="width:1.5rem;height:1.5rem;color:var(--pk-primary-content)" viewBox="0 0 24 24" fill="currentColor">' +
             '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>' +
           '</svg>' +
         '</button>' : '') +
 
       // Banner - using theme colors
-      '<div id="pk-consent-banner" class="pk-banner pk-glass" style="position:fixed;bottom:0;left:0;right:0;z-index:50;display:none;border-radius:0" role="dialog" aria-label="Cookie consent" aria-hidden="true">' +
+      '<div id="pk-consent-banner" class="pk-banner pk-glass" style="position:fixed;bottom:0;left:0;right:0;z-index:50;display:none;border-radius:0" role="dialog" aria-label="' + escapeAttr(t("banner_aria_label", "Cookie consent")) + '" aria-hidden="true">' +
         '<div style="max-width:64rem;margin:0 auto;padding:1rem 1.5rem">' +
           '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:1rem">' +
             '<div style="flex:1;display:flex;align-items:flex-start;gap:0.75rem;min-width:200px">' +
@@ -343,24 +354,24 @@
                 '</svg>' +
               '</div>' +
               '<div>' +
-                '<h3 style="font-weight:600;font-size:0.875rem;margin:0;color:var(--pk-text)">We value your privacy</h3>' +
+                '<h3 style="font-weight:600;font-size:0.875rem;margin:0;color:var(--pk-text)">' + escapeText(t("banner_title", "We value your privacy")) + '</h3>' +
                 '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' +
-                  'We use cookies to enhance your experience. ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">Cookie Policy</a>' +
+                  escapeText(t("banner_message", "We use cookies to enhance your browsing experience and analyze our traffic.")) + ' ' +
+                  '<a href="' + escapeAttr(config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:var(--pk-primary);text-decoration:underline" target="_blank">' + escapeText(t("cookie_policy_label", "Cookie Policy")) + '</a>' +
                 '</p>' +
               '</div>' +
             '</div>' +
             '<div style="display:flex;gap:0.5rem;flex-wrap:wrap">' +
-              '<button type="button" onclick="window.PhoenixKitConsent.openPreferences()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">Customize</button>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-outline btn-sm" style="font-size:0.75rem">Reject</button>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.acceptAll()" class="btn btn-primary btn-sm" style="font-size:0.75rem">Accept All</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.openPreferences()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + escapeText(t("customize", "Customize")) + '</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-outline btn-sm" style="font-size:0.75rem">' + escapeText(t("reject", "Reject")) + '</button>' +
+              '<button type="button" onclick="window.PhoenixKitConsent.acceptAll()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + escapeText(t("accept_all", "Accept All")) + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
 
       // Modal - using theme colors
-      '<div id="pk-consent-modal" style="position:fixed;inset:0;z-index:100;display:none" role="dialog" aria-modal="true" aria-label="Cookie preferences">' +
+      '<div id="pk-consent-modal" style="position:fixed;inset:0;z-index:100;display:none" role="dialog" aria-modal="true" aria-label="' + escapeAttr(t("icon_aria_label", "Cookie preferences")) + '">' +
         '<div class="pk-modal-backdrop" onclick="window.PhoenixKitConsent.closePreferences()" style="position:absolute;inset:0;background:oklch(var(--bc)/0.4);backdrop-filter:blur(4px)"></div>' +
         '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;pointer-events:none">' +
           '<div class="pk-modal-content pk-glass" style="width:100%;max-width:28rem;max-height:85vh;overflow:hidden;border-radius:1rem;pointer-events:auto">' +
@@ -373,11 +384,11 @@
                   '</svg>' +
                 '</div>' +
                 '<div>' +
-                  '<h2 style="font-weight:600;font-size:1.125rem;margin:0;color:var(--pk-text)">Privacy Preferences</h2>' +
-                  '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0">Manage your cookie settings</p>' +
+                  '<h2 style="font-weight:600;font-size:1.125rem;margin:0;color:var(--pk-text)">' + escapeText(t("modal_title", "Privacy Preferences")) + '</h2>' +
+                  '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0">' + escapeText(t("modal_subtitle", "Manage your cookie settings")) + '</p>' +
                 '</div>' +
               '</div>' +
-              '<button type="button" onclick="window.PhoenixKitConsent.closePreferences()" class="btn btn-ghost btn-sm btn-circle" aria-label="Close">' +
+              '<button type="button" onclick="window.PhoenixKitConsent.closePreferences()" class="btn btn-ghost btn-sm btn-circle" aria-label="' + escapeAttr(t("modal_close_aria", "Close")) + '">' +
                 '<svg style="width:1.25rem;height:1.25rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
                   '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>' +
                 '</svg>' +
@@ -385,22 +396,22 @@
             '</div>' +
             // Categories
             '<div style="padding:1rem 1.5rem;overflow-y:auto;max-height:50vh">' +
-              createCategoryHTML("necessary", "🔒", "Essential", "Required for core functionality. Cannot be disabled.", true) +
-              createCategoryHTML("analytics", "📊", "Analytics", "Help us understand how you use our site.") +
-              createCategoryHTML("marketing", "📢", "Marketing", "Used for personalized advertising.") +
-              createCategoryHTML("preferences", "⚙️", "Preferences", "Remember your settings and preferences.") +
+              createCategoryHTML("necessary", "🔒", tc("necessary", "name", "Essential"), tc("necessary", "description", "Required for core functionality. Cannot be disabled."), true) +
+              createCategoryHTML("analytics", "📊", tc("analytics", "name", "Analytics"), tc("analytics", "description", "Help us understand how you use our site.")) +
+              createCategoryHTML("marketing", "📢", tc("marketing", "name", "Marketing"), tc("marketing", "description", "Used for personalized advertising.")) +
+              createCategoryHTML("preferences", "⚙️", tc("preferences", "name", "Preferences"), tc("preferences", "description", "Remember your settings and preferences.")) +
             '</div>' +
             // Modal Footer
             '<div style="padding:1rem 1.5rem;border-top:1px solid var(--pk-border);background:var(--pk-bg-alt)">' +
               '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem">' +
                 '<div style="font-size:0.75rem;color:var(--pk-text-muted)">' +
-                  '<a href="' + (config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">Privacy Policy</a>' +
+                  '<a href="' + escapeAttr(config.privacy_policy_url || '/legal/privacy-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + escapeText(t("privacy_policy_label", "Privacy Policy")) + '</a>' +
                   ' • ' +
-                  '<a href="' + (config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">Cookie Policy</a>' +
+                  '<a href="' + escapeAttr(config.cookie_policy_url || '/legal/cookie-policy') + '" style="color:inherit;text-decoration:underline" target="_blank">' + escapeText(t("cookie_policy_label", "Cookie Policy")) + '</a>' +
                 '</div>' +
                 '<div style="margin-left:auto;display:flex;gap:0.5rem">' +
-                  '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">Reject All</button>' +
-                  '<button type="button" onclick="window.PhoenixKitConsent.savePreferences()" class="btn btn-primary btn-sm" style="font-size:0.75rem">Save Preferences</button>' +
+                  '<button type="button" onclick="window.PhoenixKitConsent.rejectAll()" class="btn btn-ghost btn-sm" style="font-size:0.75rem">' + escapeText(t("reject_all", "Reject All")) + '</button>' +
+                  '<button type="button" onclick="window.PhoenixKitConsent.savePreferences()" class="btn btn-primary btn-sm" style="font-size:0.75rem">' + escapeText(t("save_preferences", "Save Preferences")) + '</button>' +
                 '</div>' +
               '</div>' +
             '</div>' +
@@ -412,22 +423,22 @@
 
   function createCategoryHTML(id, icon, name, description, required) {
     var checkedAttr = required ? ' checked disabled' : '';
-    var requiredBadge = required ? '<span class="badge badge-ghost badge-xs" style="margin-left:0.5rem">Required</span>' : '';
+    var requiredBadge = required ? '<span class="badge badge-ghost badge-xs" style="margin-left:0.5rem">' + escapeText(t("required", "Required")) + '</span>' : '';
 
     return '<div class="pk-category-card" style="border-radius:0.75rem;padding:1rem;margin-bottom:0.75rem">' +
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem">' +
         '<div style="display:flex;align-items:flex-start;gap:0.75rem;flex:1">' +
-          '<span style="font-size:1.25rem">' + icon + '</span>' +
+          '<span style="font-size:1.25rem">' + escapeText(icon) + '</span>' +
           '<div>' +
             '<div style="display:flex;align-items:center">' +
-              '<span style="font-weight:500;font-size:0.875rem;color:var(--pk-text)">' + name + '</span>' +
+              '<span style="font-weight:500;font-size:0.875rem;color:var(--pk-text)">' + escapeText(name) + '</span>' +
               requiredBadge +
             '</div>' +
-            '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' + description + '</p>' +
+            '<p style="font-size:0.75rem;color:var(--pk-text-muted);margin:0.25rem 0 0 0">' + escapeText(description) + '</p>' +
           '</div>' +
         '</div>' +
         '<label style="position:relative;display:inline-flex;cursor:pointer;flex-shrink:0">' +
-          '<input type="checkbox" id="pk-consent-' + id + '" class="toggle toggle-primary toggle-sm" data-category="' + id + '"' + checkedAttr + '>' +
+          '<input type="checkbox" id="pk-consent-' + escapeAttr(id) + '" class="toggle toggle-primary toggle-sm" data-category="' + escapeAttr(id) + '"' + checkedAttr + '>' +
         '</label>' +
       '</div>' +
     '</div>';
@@ -455,6 +466,7 @@
   function showBanner() {
     var banner = document.getElementById("pk-consent-banner");
     if (banner) {
+      banner.classList.remove("hidden");
       banner.style.display = "block";
       banner.setAttribute("aria-hidden", "false");
     }
@@ -486,6 +498,7 @@
   function showModal() {
     var modal = document.getElementById("pk-consent-modal");
     if (modal) {
+      modal.classList.remove("hidden");
       modal.style.display = "block";
       hideBanner();
       setTimeout(function() {
@@ -624,12 +637,6 @@
   // =====================================================
 
   function initFromConfig(config) {
-    // Check if widget should be shown (respects hide_for_authenticated)
-    if (config.should_show === false) {
-      log("Widget hidden (user authenticated or disabled)");
-      return;
-    }
-
     PhoenixKitConsent.config = {
       frameworks: config.frameworks || [],
       consentMode: config.consent_mode || "strict",
@@ -638,7 +645,8 @@
       iconPosition: config.icon_position || "bottom-right",
       showIcon: config.show_icon || false,
       cookiePolicyUrl: config.cookie_policy_url || "/legal/cookie-policy",
-      privacyPolicyUrl: config.privacy_policy_url || "/legal/privacy-policy"
+      privacyPolicyUrl: config.privacy_policy_url || "/legal/privacy-policy",
+      translations: config.translations || {}
     };
 
     // Inject widget into DOM
@@ -704,7 +712,8 @@
       iconPosition: config.icon_position,
       showIcon: config.show_icon,
       cookiePolicyUrl: config.cookie_policy_url,
-      privacyPolicyUrl: config.privacy_policy_url
+      privacyPolicyUrl: config.privacy_policy_url,
+      translations: {}
     };
 
     PhoenixKitConsent.elements = {
@@ -742,6 +751,16 @@
     log("Initialized from element", PhoenixKitConsent.config);
   }
 
+  // Manual API: fetch config from server and inject widget.
+  // Not called from auto-init — the server decides visibility at render time
+  // via the cookie_consent component's phoenix_kit_current_scope attr.
+  //
+  // WARNING: calling window.PhoenixKitConsent.init() from a third-party page
+  // BYPASSES the server-side auth gate. The config API backing this call is
+  // auth-agnostic by design (cacheable, no per-request user check), so the
+  // widget will render regardless of whether the current user is authenticated.
+  // If you call init() on pages where authenticated users should not see the
+  // widget, you MUST perform your own auth check before calling it.
   function fetchConfigAndInit() {
     fetch(getConfigEndpoint(), { credentials: "same-origin" })
       .then(function(response) {
@@ -751,16 +770,18 @@
         return response.json();
       })
       .then(function(config) {
-        if (config.enabled && config.should_show !== false) {
-          initFromConfig(config);
+        if (PhoenixKitConsent.initialized) return;
+        if (!config.enabled) return;
+
+        var existingRoot = document.getElementById("pk-consent-root");
+        if (existingRoot) {
+          initFromElement(existingRoot);
         } else {
-          log("Consent widget is disabled");
-          // Reset Google Consent Mode to granted state when widget is disabled
-          resetGoogleConsentMode();
+          initFromConfig(config);
         }
       })
       .catch(function(err) {
-        log("Could not fetch config (widget disabled or endpoint unavailable)", err);
+        log("Could not fetch config", err);
       });
   }
 
@@ -783,21 +804,21 @@
   window.PhoenixKitHooks = window.PhoenixKitHooks || {};
   window.PhoenixKitHooks.CookieConsent = CookieConsentHook;
 
+  // Expose manual-injection entry point for third-party / non-LiveView contexts.
+  PhoenixKitConsent.init = fetchConfigAndInit;
+
   // Export module
   window.PhoenixKitConsent = PhoenixKitConsent;
 
-  // Auto-init: fetch config from API and inject widget
+  // Auto-init: the server decides visibility at render time. If it rendered
+  // #pk-consent-root, initialize from that element. Otherwise do nothing —
+  // the user is authenticated (hidden) or the widget is disabled.
+  // LiveView hook may have already initialized via `mounted` — the
+  // `initialized` guard prevents double-init.
   document.addEventListener("DOMContentLoaded", function() {
-    // Check if widget already exists (injected via component)
-    var existingRoot = document.getElementById("pk-consent-root");
-    if (existingRoot) {
-      // Widget already in DOM, will be initialized by LiveView hook
-      log("Widget already in DOM, waiting for LiveView hook");
-      return;
-    }
-
-    // Otherwise, fetch config and auto-inject
-    fetchConfigAndInit();
+    if (PhoenixKitConsent.initialized) return;
+    var root = document.getElementById("pk-consent-root");
+    if (root) initFromElement(root);
   });
 
 })();

@@ -21,8 +21,6 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
         frameworks={["gdpr"]}
         icon_position="bottom-right"
         policy_version="1.0"
-        cookie_policy_url="/legal/cookie-policy"
-        privacy_policy_url="/legal/privacy-policy"
         google_consent_mode={true}
       />
   """
@@ -30,35 +28,43 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
   use Phoenix.Component
   use Gettext, backend: PhoenixKitWeb.Gettext
 
+  alias PhoenixKit.Modules.Legal
+  alias PhoenixKit.Users.Auth.Scope
+
   @opt_in_frameworks ~w(gdpr uk_gdpr lgpd pipeda)
 
-  @consent_categories [
-    %{
-      id: "necessary",
-      name: "Essential",
-      icon: "🔒",
-      description: "Required for core functionality. These cannot be disabled.",
-      always_enabled: true
-    },
-    %{
-      id: "analytics",
-      name: "Analytics",
-      icon: "📊",
-      description: "Help us understand how you use our site to improve your experience."
-    },
-    %{
-      id: "marketing",
-      name: "Marketing",
-      icon: "📢",
-      description: "Used for personalized advertising and measuring ad effectiveness."
-    },
-    %{
-      id: "preferences",
-      name: "Preferences",
-      icon: "⚙️",
-      description: "Remember your settings like language and region preferences."
-    }
-  ]
+  # Consent category names and descriptions are resolved at render time via
+  # `translated_categories/0` so they follow the current Gettext locale.
+  defp translated_categories do
+    [
+      %{
+        id: "necessary",
+        name: gettext("Essential"),
+        icon: "🔒",
+        description: gettext("Required for core functionality. These cannot be disabled."),
+        always_enabled: true
+      },
+      %{
+        id: "analytics",
+        name: gettext("Analytics"),
+        icon: "📊",
+        description:
+          gettext("Help us understand how you use our site to improve your experience.")
+      },
+      %{
+        id: "marketing",
+        name: gettext("Marketing"),
+        icon: "📢",
+        description: gettext("Used for personalized advertising and measuring ad effectiveness.")
+      },
+      %{
+        id: "preferences",
+        name: gettext("Preferences"),
+        icon: "⚙️",
+        description: gettext("Remember your settings like language and region preferences.")
+      }
+    ]
+  end
 
   attr :frameworks, :list, default: [], doc: "Selected compliance frameworks"
 
@@ -73,19 +79,39 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
     doc: "Position of floating icon"
 
   attr :policy_version, :string, default: "1.0", doc: "Policy version for consent tracking"
-  attr :cookie_policy_url, :string, default: "/legal/cookie-policy"
-  attr :privacy_policy_url, :string, default: "/legal/privacy-policy"
-
-  attr :legal_links, :list,
-    default: [],
-    doc: "Dynamic list of %{title, url} for published legal pages"
 
   attr :legal_index_url, :string, default: "/legal", doc: "URL to legal pages index"
+
+  # Accepted for backward compatibility with PhoenixKit default layouts
+  # (which pass these from Legal.get_consent_widget_config/0). The template
+  # renders links via @legal_index_url only; these attrs are unused here but
+  # are consumed by the JS-injected widget path via the config API.
+  attr :cookie_policy_url, :string, default: nil
+  attr :privacy_policy_url, :string, default: nil
+  attr :legal_links, :list, default: []
 
   attr :google_consent_mode, :boolean, default: false, doc: "Enable Google Consent Mode v2"
   attr :class, :string, default: ""
 
+  attr :phoenix_kit_current_scope, :any,
+    default: nil,
+    doc: "PhoenixKit scope for auth-based visibility check"
+
   def cookie_consent(assigns) do
+    if should_hide_for_user?(assigns[:phoenix_kit_current_scope]) do
+      ~H""
+    else
+      render_cookie_consent(assigns)
+    end
+  end
+
+  defp should_hide_for_user?(%Scope{} = scope) do
+    Scope.authenticated?(scope) and Legal.hide_for_authenticated?()
+  end
+
+  defp should_hide_for_user?(_), do: false
+
+  defp render_cookie_consent(assigns) do
     # Icon only shown in strict mode with opt-in frameworks
     show_icon =
       assigns.consent_mode == "strict" and
@@ -93,7 +119,7 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
 
     assigns =
       assigns
-      |> assign(:categories, @consent_categories)
+      |> assign(:categories, translated_categories())
       |> assign(:show_icon, show_icon)
 
     ~H"""
@@ -209,7 +235,6 @@ defmodule PhoenixKit.Modules.Legal.CookieConsent do
             "pk-floating-icon pk-glass fixed z-50 w-12 h-12 rounded-full",
             "flex items-center justify-center cursor-pointer",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "transition-opacity duration-300",
             icon_position_class(@icon_position)
           ]}
           aria-label={gettext("Cookie preferences")}
