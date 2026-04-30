@@ -62,24 +62,21 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
   def insert_plug_static(path) do
     content = File.read!(path)
 
-    cond do
+    if String.contains?(content, "phoenix_kit_legal") do
       # Already patched — idempotent
-      String.contains?(content, "phoenix_kit_legal") ->
-        Mix.shell().info("  [skip] #{path} already has Plug.Static for phoenix_kit_legal.")
+      Mix.shell().info("  [skip] #{path} already has Plug.Static for phoenix_kit_legal.")
+    else
+      case find_insertion_point(content) do
+        {:ok, patched} ->
+          File.write!(path, patched)
+          Mix.shell().info("  [ok]   Patched #{path} with Plug.Static for /phoenix_kit_legal.")
 
-      # Find insertion point: before the last Plug.Static block
-      true ->
-        case find_insertion_point(content) do
-          {:ok, patched} ->
-            File.write!(path, patched)
-            Mix.shell().info("  [ok]   Patched #{path} with Plug.Static for /phoenix_kit_legal.")
-
-          :error ->
-            Mix.shell().info(
-              "  [warn] Could not find insertion point in #{path}. Please add manually:\n" <>
-                @static_plug_snippet
-            )
-        end
+        :error ->
+          Mix.shell().info(
+            "  [warn] Could not find insertion point in #{path}. Please add manually:\n" <>
+              @static_plug_snippet
+          )
+      end
     end
   end
 
@@ -237,20 +234,21 @@ defmodule Mix.Tasks.PhoenixKitLegal.Install do
       css_paths = ["assets/css/app.css", "priv/static/assets/app.css", "assets/app.css"]
 
       case Enum.find(css_paths, &File.exists?/1) do
-        nil ->
-          Mix.shell().info("  ⚠  Could not find app.css — add @source manually.")
-
-        path ->
-          content = File.read!(path)
-          updated = insert_css_source(content)
-
-          if updated == content do
-            Mix.shell().info("  ✓ app.css already has @source for phoenix_kit_legal")
-          else
-            File.write!(path, updated)
-            Mix.shell().info("  ✓ Added @source directive to #{path}")
-          end
+        nil -> Mix.shell().info("  ⚠  Could not find app.css — add @source manually.")
+        path -> patch_css_file(path)
       end
+    end
+  end
+
+  defp patch_css_file(path) do
+    content = File.read!(path)
+    updated = insert_css_source(content)
+
+    if updated == content do
+      Mix.shell().info("  ✓ app.css already has @source for phoenix_kit_legal")
+    else
+      File.write!(path, updated)
+      Mix.shell().info("  ✓ Added @source directive to #{path}")
     end
   end
 

@@ -167,7 +167,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       @plugin "@tailwindcss/typography";
       """
 
-      result = Mix.Tasks.PhoenixKitLegal.Install.insert_css_source(css)
+      result = Install.insert_css_source(css)
 
       assert result =~ ~s(@source "../../deps/phoenix_kit_legal";)
 
@@ -183,7 +183,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
 
     test "idempotent — does not duplicate if already present" do
       css = ~s(@source "../../deps/phoenix_kit_legal";\n)
-      assert Mix.Tasks.PhoenixKitLegal.Install.insert_css_source(css) == css
+      assert Install.insert_css_source(css) == css
     end
   end
 
@@ -195,7 +195,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       import topbar from "../vendor/topbar"
       """
 
-      result = Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js)
+      result = Install.insert_app_js_import(js)
 
       assert result =~ "phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"
       lines = String.split(result, "\n")
@@ -206,7 +206,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
 
     test "idempotent — does not duplicate if already present" do
       js = ~s(import "../../deps/phoenix_kit_legal/priv/static/assets/phoenix_kit_consent.js"\n)
-      assert Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js) == js
+      assert Install.insert_app_js_import(js) == js
     end
 
     test "falls back to after last import line when no phoenix_kit.js found" do
@@ -216,7 +216,7 @@ defmodule Mix.Tasks.PhoenixKitLegal.InstallTest do
       const x = 1
       """
 
-      result = Mix.Tasks.PhoenixKitLegal.Install.insert_app_js_import(js)
+      result = Install.insert_app_js_import(js)
       assert result =~ "phoenix_kit_consent.js"
       lines = String.split(result, "\n")
       topbar_idx = Enum.find_index(lines, &String.contains?(&1, "topbar"))

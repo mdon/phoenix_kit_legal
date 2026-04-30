@@ -1,7 +1,7 @@
 defmodule PhoenixKitLegal.MixProject do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.1.3"
   @source_url "https://github.com/BeamLabEU/phoenix_kit_legal"
 
   def project do
@@ -21,7 +21,7 @@ defmodule PhoenixKitLegal.MixProject do
       package: package(),
 
       # Dialyzer
-      dialyzer: [plt_add_apps: [:phoenix_kit]],
+      dialyzer: [plt_add_apps: [:mix, :phoenix_kit]],
 
       # Docs
       name: "PhoenixKitLegal",
