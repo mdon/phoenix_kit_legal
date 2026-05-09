@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.4 (2026-05-09)
+
+### Changed
+- All module-owned `gettext` calls now resolve through `PhoenixKit.Modules.Legal.Gettext` instead of the parent app's `PhoenixKitWeb.Gettext` — completes the per-module-i18n migration started in 0.1.3 (`legal.ex`, `web/cookie_consent.ex`, `web/settings.ex`)
+- `translate_title/2` resolves page titles against the module's own catalogue under `priv/gettext/`, so generated legal pages get titles in the user's locale even on parent apps that don't translate these strings themselves
+- `priv/gettext/default.pot` is now auto-extracted (`mix gettext.extract --merge`) — covers tab labels, page titles, consent-widget UI, and admin flash messages (126 msgids); `__extract_strings__/0` seeds runtime-only strings for the extractor
+
+### Added
+- Russian (`ru`) and Estonian (`et`) translations for the entire catalogue: consent-widget banner / modal / category names, page titles, settings labels, flash messages
+- `Plural-Forms` header on `priv/gettext/en/LC_MESSAGES/default.po`
+- Per-locale tests for the module's own catalogue (`translate/2` smoke tests covering page titles + consent-widget strings) — runnable against any `phoenix_kit` release; tab-label tests remain gated behind `:requires_phoenix_kit_i18n_api` until [BeamLabEU/phoenix_kit#522](https://github.com/BeamLabEU/phoenix_kit/pull/522) ships
+
+### Notes
+- Sidebar tab label still falls back to the raw "Legal" string on `phoenix_kit` ≤ 1.7.105: `Tab.localized_label/1` and the `gettext_backend:` field on `%Tab{}` ship with phoenix_kit#522, which is unmerged. Consent-widget strings and page titles already resolve per-locale on the published `phoenix_kit` because they're rendered live from our own modules.
+
 ## 0.1.3 (2026-04-30)
 
 ### Added
