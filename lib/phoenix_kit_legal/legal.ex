@@ -764,7 +764,9 @@ defmodule PhoenixKit.Modules.Legal do
         level: :admin,
         parent: :admin_settings,
         permission: "legal",
-        live_view: {PhoenixKitWeb.Live.Modules.Legal.Settings, :index}
+        live_view: {PhoenixKitWeb.Live.Modules.Legal.Settings, :index},
+        gettext_backend: PhoenixKit.Modules.Legal.Gettext,
+        gettext_domain: "default"
       )
     ]
   end
