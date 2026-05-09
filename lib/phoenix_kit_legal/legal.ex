@@ -32,7 +32,7 @@ defmodule PhoenixKit.Modules.Legal do
   """
 
   use PhoenixKit.Module
-  use Gettext, backend: PhoenixKitWeb.Gettext
+  use Gettext, backend: PhoenixKit.Modules.Legal.Gettext
 
   @compile {:no_warn_undefined,
             [
@@ -1006,12 +1006,17 @@ defmodule PhoenixKit.Modules.Legal do
   # PRIVATE HELPERS
   # ===================================
 
-  # Dummy function to mark page titles for gettext extraction.
-  # Never called — exists only so `mix gettext.extract` sees these strings.
-  # Runtime translation happens via `translate_title/2` below.
+  # Dummy function to mark strings for `mix gettext.extract`. Never called —
+  # extraction now targets this module's own catalogue under `priv/gettext/`
+  # via `PhoenixKit.Modules.Legal.Gettext`. Runtime translation of page
+  # titles happens via `translate_title/2`; tab labels resolve through the
+  # `gettext_backend:` field on the `Tab` struct.
   @doc false
-  def __extract_titles__ do
+  def __extract_strings__ do
     [
+      # Tab labels (rendered by host via Tab.localized_label/1)
+      gettext("Legal"),
+      # Page titles (resolved at runtime via translate_title/2)
       gettext("Privacy Policy"),
       gettext("Cookie Policy"),
       gettext("Terms of Service"),
@@ -1023,8 +1028,8 @@ defmodule PhoenixKit.Modules.Legal do
   end
 
   defp translate_title(title, language) do
-    Gettext.with_locale(PhoenixKitWeb.Gettext, language, fn ->
-      Gettext.gettext(PhoenixKitWeb.Gettext, title)
+    Gettext.with_locale(PhoenixKit.Modules.Legal.Gettext, language, fn ->
+      Gettext.gettext(PhoenixKit.Modules.Legal.Gettext, title)
     end)
   end
 
