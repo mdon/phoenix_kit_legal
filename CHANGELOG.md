@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5 (2026-05-22)
+
+### Fixed
+- `Migrations.ConsentLogs` now implements the versioned-migration protocol PhoenixKit Core v1.7.119 (schema V121) expects — `current_version/0` and `migrated_version_runtime/1` — and `up/1`/`down/1` accept the keyword list Core passes (`prefix:`, `version:`) as well as the legacy map. Previously, on a clean install against the new Core, `mix phoenix_kit.update` silently skipped the Legal migration and `phoenix_kit_consent_logs` was never created (existing installs were unaffected). (#8)
+
+### Changed
+- Translated the `ConsentLogs` migration's docstrings and comments to English (no logic or SQL change)
+
 ## 0.1.4 (2026-05-09)
 
 ### Changed
