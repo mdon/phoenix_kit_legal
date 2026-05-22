@@ -15,15 +15,15 @@ defmodule PhoenixKit.Modules.Legal.Migrations.ConsentLogs do
 
   @current_version 1
 
-  @doc "Целевая версия схемы Legal-модуля."
+  @doc "Target schema version of the Legal module."
   def current_version, do: @current_version
 
   @doc """
-  Текущая применённая версия схемы из БД.
+  Currently applied schema version, read from the database.
 
-  Возвращает `0`, если таблицы `phoenix_kit_consent_logs` ещё нет,
-  и `#{@current_version}`, если она уже создана. `opts` — keyword list
-  с опциональным `:prefix`.
+  Returns `0` when the `phoenix_kit_consent_logs` table does not yet exist,
+  and `#{@current_version}` once it has been created. `opts` is a keyword list
+  with an optional `:prefix`.
   """
   def migrated_version_runtime(opts \\ []) do
     prefix = normalize_prefix(opts)
@@ -43,10 +43,10 @@ defmodule PhoenixKit.Modules.Legal.Migrations.ConsentLogs do
   end
 
   @doc """
-  Применяет миграцию Legal-модуля.
+  Applies the Legal module migration.
 
-  Принимает keyword list (так его передаёт Core) или map — для обратной
-  совместимости.
+  Accepts a keyword list (the form Core passes) or a map, for backward
+  compatibility.
   """
   def up(opts \\ []) do
     prefix = normalize_prefix(opts)
@@ -92,18 +92,18 @@ defmodule PhoenixKit.Modules.Legal.Migrations.ConsentLogs do
   end
 
   @doc """
-  Откатывает миграцию Legal-модуля.
+  Rolls back the Legal module migration.
 
-  Принимает keyword list (так его передаёт Core) или map — для обратной
-  совместимости.
+  Accepts a keyword list (the form Core passes) or a map, for backward
+  compatibility.
   """
   def down(opts \\ []) do
     prefix_str = prefix_str(normalize_prefix(opts))
     execute("DROP TABLE IF EXISTS #{prefix_str}phoenix_kit_consent_logs CASCADE")
   end
 
-  # Core передаёт keyword list (`prefix: "public", version: 1`);
-  # прежний механизм — map (`%{prefix: "public"}`). Поддерживаем оба.
+  # Core passes a keyword list (`prefix: "public", version: 1`);
+  # the legacy mechanism used a map (`%{prefix: "public"}`). Support both.
   defp normalize_prefix(opts) when is_list(opts), do: opts[:prefix] || "public"
   defp normalize_prefix(%{prefix: prefix}), do: prefix || "public"
   defp normalize_prefix(_), do: "public"
