@@ -4,12 +4,53 @@ defmodule PhoenixKit.Modules.Legal.Migrations.ConsentLogs do
 
   Creates the `phoenix_kit_consent_logs` table.
   All statements use IF NOT EXISTS guards — safe to run multiple times.
+
+  Implements the versioned-migration protocol expected by PhoenixKit Core
+  (`mix phoenix_kit.update`): `current_version/0` and
+  `migrated_version_runtime/1`. Reference implementation —
+  `PhoenixKit.Migrations.Postgres` in Core.
   """
 
   use Ecto.Migration
 
-  def up(%{prefix: prefix} = _opts) do
-    prefix_str = if prefix && prefix != "public", do: "#{prefix}.", else: ""
+  @current_version 1
+
+  @doc "Целевая версия схемы Legal-модуля."
+  def current_version, do: @current_version
+
+  @doc """
+  Текущая применённая версия схемы из БД.
+
+  Возвращает `0`, если таблицы `phoenix_kit_consent_logs` ещё нет,
+  и `#{@current_version}`, если она уже создана. `opts` — keyword list
+  с опциональным `:prefix`.
+  """
+  def migrated_version_runtime(opts \\ []) do
+    prefix = normalize_prefix(opts)
+
+    table =
+      if prefix == "public",
+        do: "public.phoenix_kit_consent_logs",
+        else: "#{prefix}.phoenix_kit_consent_logs"
+
+    case PhoenixKit.RepoHelper.repo().query("SELECT to_regclass($1)", [table]) do
+      {:ok, %{rows: [[nil]]}} -> 0
+      {:ok, %{rows: [[_oid]]}} -> @current_version
+      _ -> 0
+    end
+  rescue
+    _ -> 0
+  end
+
+  @doc """
+  Применяет миграцию Legal-модуля.
+
+  Принимает keyword list (так его передаёт Core) или map — для обратной
+  совместимости.
+  """
+  def up(opts \\ []) do
+    prefix = normalize_prefix(opts)
+    prefix_str = prefix_str(prefix)
 
     execute("""
     CREATE TABLE IF NOT EXISTS #{prefix_str}phoenix_kit_consent_logs (
@@ -50,8 +91,23 @@ defmodule PhoenixKit.Modules.Legal.Migrations.ConsentLogs do
     """)
   end
 
-  def down(%{prefix: prefix} = _opts) do
-    prefix_str = if prefix && prefix != "public", do: "#{prefix}.", else: ""
+  @doc """
+  Откатывает миграцию Legal-модуля.
+
+  Принимает keyword list (так его передаёт Core) или map — для обратной
+  совместимости.
+  """
+  def down(opts \\ []) do
+    prefix_str = prefix_str(normalize_prefix(opts))
     execute("DROP TABLE IF EXISTS #{prefix_str}phoenix_kit_consent_logs CASCADE")
   end
+
+  # Core передаёт keyword list (`prefix: "public", version: 1`);
+  # прежний механизм — map (`%{prefix: "public"}`). Поддерживаем оба.
+  defp normalize_prefix(opts) when is_list(opts), do: opts[:prefix] || "public"
+  defp normalize_prefix(%{prefix: prefix}), do: prefix || "public"
+  defp normalize_prefix(_), do: "public"
+
+  defp prefix_str(prefix) when prefix in [nil, "public"], do: ""
+  defp prefix_str(prefix), do: "#{prefix}."
 end
