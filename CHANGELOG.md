@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.6 (2026-07-03)
+
+### Added
+- `reserved_route_prefixes/0` (`@impl PhoenixKit.Module`) declares `"legal"` as a
+  reserved top-level route prefix, so Publishing's `/:language/:group/*path`
+  catch-all dispatch can be told to leave the host app's own `/legal` route alone
+  instead of treating the `"legal"` Publishing group Legal creates as one of its
+  own groups. Requires `phoenix_kit` ≥ 1.7.170 (adds the callback) and a
+  `phoenix_kit_publishing` release that consults
+  `PhoenixKit.ModuleRegistry.all_reserved_route_prefixes/0` in its dispatcher —
+  declaring the prefix here is a no-op until both are in place. (#9)
+
+### Changed
+- Bumped `phoenix_kit` dependency floor to `~> 1.7.170` — the version that
+  introduces `PhoenixKit.Module.reserved_route_prefixes/0`, which this module now
+  implements under `@impl`.
+
 ## 0.1.5 (2026-05-22)
 
 ### Fixed

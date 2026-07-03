@@ -14,7 +14,7 @@ defmodule PhoenixKitLegal do
 
   ## Dependencies
 
-  - `phoenix_kit` ~> 1.7
+  - `phoenix_kit` ~> 1.7.170
   - `phoenix_kit_publishing` (for page generation)
   """
 

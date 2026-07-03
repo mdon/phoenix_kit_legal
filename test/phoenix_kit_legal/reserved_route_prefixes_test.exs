@@ -7,7 +7,9 @@ defmodule PhoenixKit.Modules.Legal.ReservedRoutePrefixesTest do
   """
   use ExUnit.Case, async: true
 
+  alias PhoenixKit.Modules.Legal
+
   test "reserves the \"legal\" prefix" do
-    assert PhoenixKit.Modules.Legal.reserved_route_prefixes() == ["legal"]
+    assert Legal.reserved_route_prefixes() == ["legal"]
   end
 end
