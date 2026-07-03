@@ -786,6 +786,17 @@ defmodule PhoenixKit.Modules.Legal do
   @impl PhoenixKit.Module
   def migration_module, do: PhoenixKit.Modules.Legal.Migrations.ConsentLogs
 
+  # Legal owns the top-level "/legal" route (its host-app LiveView reads
+  # generated pages via this module). It also creates a Publishing group
+  # slugged @legal_blog_slug ("legal") to store those pages, which — absent
+  # this reservation — Publishing's `/:language/:group/*path` catch-all
+  # dispatch would treat as one of its own groups and claim the request
+  # before the host's own "/legal" route ever matches, rendering Publishing's
+  # generic post view (wrong canonical/og/hreflang) instead of the host's
+  # LiveView. See `PhoenixKit.Module.reserved_route_prefixes/0`.
+  @impl PhoenixKit.Module
+  def reserved_route_prefixes, do: [@legal_blog_slug]
+
   # ===================================
   # PAGE GENERATION
   # ===================================
