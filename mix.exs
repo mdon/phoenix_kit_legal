@@ -63,7 +63,7 @@ defmodule PhoenixKitLegal.MixProject do
       # optional: `@impl` on an undeclared callback is a compile error, not a
       # graceful no-op. 1.7.184 adds `disabled`/`wrapper_class`/`title`/
       # `:description` to `PhoenixKitWeb.Components.Core.Checkbox`, used here.
-      {:phoenix_kit, "~> 1.7.184"},
+      {:phoenix_kit, "~> 1.7.189"},
 
       # Publishing module for storing generated legal pages as posts.
       {:phoenix_kit_publishing, "~> 0.1"},
