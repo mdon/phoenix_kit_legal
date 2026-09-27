@@ -38,7 +38,7 @@ defmodule PhoenixKit.Modules.Legal do
             [
               {PhoenixKit.Modules.Publishing, :enabled?, 0},
               {PhoenixKit.Modules.Publishing, :get_primary_language, 0},
-              {PhoenixKit.Modules.Publishing, :get_group, 1},
+              {PhoenixKit.Modules.Publishing, :fetch_group, 1},
               {PhoenixKit.Modules.Publishing, :add_group, 2},
               {PhoenixKit.Modules.Publishing, :list_posts, 1},
               {PhoenixKit.Modules.Publishing, :list_posts_by_status, 2},
@@ -1184,7 +1184,7 @@ defmodule PhoenixKit.Modules.Legal do
   @doc false
   def ensure_legal_blog do
     # First check if legal blog already exists
-    case publishing_module().get_group(@legal_blog_slug) do
+    case publishing_module().fetch_group(@legal_blog_slug) do
       {:ok, _existing_blog} ->
         {:ok, :exists}
 

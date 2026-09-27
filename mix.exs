@@ -74,7 +74,7 @@ defmodule PhoenixKitLegal.MixProject do
       {:rustler, ">= 0.0.0", optional: true},
 
       # Publishing module for storing generated legal pages as posts.
-      {:phoenix_kit_publishing, "~> 0.5"},
+      {:phoenix_kit_publishing, "~> 0.13"},
 
       # LiveView for admin settings page.
       {:phoenix_live_view, "~> 1.0"},
