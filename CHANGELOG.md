@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.1 - 2026-09-27
+
+### Fixed
+
+- Compilation warning `PhoenixKit.Modules.Publishing.get_group/1 is
+  deprecated`: `ensure_legal_blog/0` now looks up the legal group through
+  `fetch_group/1`. Requires `phoenix_kit_publishing ~> 0.13`.
+
+### Changed
+
+- The settings page's header trail reads Settings / Legal, with Settings
+  linking to `/admin/settings` (#24).
+
 ## 0.5.0 - 2026-09-24
 
 ### Added

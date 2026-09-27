@@ -11,7 +11,7 @@ Consent Mode v2, and logs consent decisions to an audit trail. It implements the
 `PhoenixKit.Module` behaviour and is auto-discovered by the host application.
 Legal generates content; Publishing renders it.
 
-- **Depends on:** `phoenix_kit` `~> 2.0` (Hex), `phoenix_kit_publishing` `~> 0.5`
+- **Depends on:** `phoenix_kit` `~> 2.0` (Hex), `phoenix_kit_publishing` `~> 0.13`
   (hard — legal pages are Publishing posts and Publishing serves them publicly;
   call sites still go through `publishing_enabled?/0`, which rescues, and a
   `@compile {:no_warn_undefined, …}` list). Also `phoenix_live_view ~> 1.0`,
